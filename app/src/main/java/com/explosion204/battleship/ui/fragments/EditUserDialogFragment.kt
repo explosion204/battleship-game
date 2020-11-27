@@ -65,9 +65,7 @@ class EditUserDialogFragment : DaggerDialogFragment() {
 
         if (mAuth.currentUser != null) {
             userViewModel.getUser(mAuth.currentUser!!.uid).observe(viewLifecycleOwner) {
-                if (it.profileImageUri != null) {
-                    Picasso.get().load(it.profileImageUri).transform(CircleTransform()).into(profileImageView)
-                }
+                Picasso.get().load(it.profileImageUri).transform(CircleTransform()).into(profileImageView)
             }
         }
     }

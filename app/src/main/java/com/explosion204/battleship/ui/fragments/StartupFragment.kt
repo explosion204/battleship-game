@@ -20,7 +20,6 @@ import javax.inject.Inject
 
 class StartupFragment : DaggerFragment(), FirebaseAuth.AuthStateListener {
     private val mAuth = FirebaseAuth.getInstance()
-    private lateinit var nicknameTextView: TextView
 
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
@@ -34,17 +33,7 @@ class StartupFragment : DaggerFragment(), FirebaseAuth.AuthStateListener {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        val view =  inflater.inflate(R.layout.fragment_startup, container, false)
-
-        nicknameTextView = view.findViewById(R.id.nickname)
-
-        if (mAuth.currentUser != null) {
-            userViewModel.getUser(mAuth.currentUser!!.uid)!!.observe(viewLifecycleOwner, Observer {
-                nicknameTextView.text = it.nickname
-            })
-        }
-
-        return view
+        return inflater.inflate(R.layout.fragment_startup, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

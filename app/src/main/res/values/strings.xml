@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Battleship</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="host_game">Host\ngame</string>
+    <string name="join_game">Join\ngame</string>
+    <string name="edit_profile">Edit\nprofile</string>
+    <string name="name">Name</string>
+    <string name="google">Google</string>
+    <string name="sign_in_with">Sign in with...</string>
+    <string name="save_changes">Save changes</string>
+</resources>

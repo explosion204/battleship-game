@@ -10,4 +10,10 @@
     <string name="sign_in_with">Sign in with...</string>
     <string name="save_changes">Save changes</string>
     <string name="tap_to_update_picture">Tap to update\npicture</string>
+    <string name="title_activity_battleship">BattleshipActivity</string>
+    <!--
+    This string is used for square devices and overridden by hello_world in
+    values-round/strings.xml for round devices.
+    -->
+    <string name="hello_world">Hello Square World!</string>
 </resources>

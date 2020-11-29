@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/game_nav_graph"
+    app:startDestination="@id/lobbyFragment">
+
+    <fragment
+        android:id="@+id/lobbyFragment"
+        android:name="com.explosion204.battleship.ui.fragments.LobbyFragment"
+        android:label="LobbyFragment" >
+        <action
+            android:id="@+id/action_lobbyFragment_to_battleshipFragment"
+            app:destination="@id/battleshipFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/battleshipFragment"
+        android:name="com.explosion204.battleship.ui.fragments.BattleshipFragment"
+        android:label="BattleshipFragment" />
+</navigation>

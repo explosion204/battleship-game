@@ -6,15 +6,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
-import android.widget.TextView
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Observer
 import androidx.navigation.Navigation
 import com.explosion204.battleship.Constants.Companion.USER_ID
 import com.explosion204.battleship.Constants.Companion.USER_NICKNAME
 import com.explosion204.battleship.R
-import com.explosion204.battleship.ui.activities.BattleshipActivity
-import com.explosion204.battleship.ui.activities.LobbyActivity
+import com.explosion204.battleship.ui.activities.GameActivity
+import com.explosion204.battleship.viewmodels.BattleshipViewModel
 import com.explosion204.battleship.viewmodels.UserViewModel
 import com.explosion204.battleship.viewmodels.ViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
@@ -27,7 +25,7 @@ class StartupFragment : DaggerFragment(), FirebaseAuth.AuthStateListener {
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
 
-    private val userViewModel : UserViewModel by activityViewModels {
+    private val userViewModel: UserViewModel by activityViewModels {
         viewModelFactory
     }
 
@@ -41,12 +39,7 @@ class StartupFragment : DaggerFragment(), FirebaseAuth.AuthStateListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         view.findViewById<ImageButton>(R.id.host_button).setOnClickListener {
-            val intent = Intent(requireContext(), LobbyActivity::class.java)
-            startActivity(intent)
-        }
-
-        view.findViewById<ImageButton>(R.id.join_button).setOnClickListener {
-            val intent = Intent(requireContext(), BattleshipActivity::class.java)
+            val intent = Intent(requireContext(), GameActivity::class.java)
             startActivity(intent)
         }
 

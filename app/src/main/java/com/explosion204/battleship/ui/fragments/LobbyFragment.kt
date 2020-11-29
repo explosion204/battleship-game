@@ -1,26 +1,34 @@
-package com.explosion204.battleship.ui.activities
+package com.explosion204.battleship.ui.fragments
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.explosion204.battleship.Matrix
 import com.explosion204.battleship.R
 import com.explosion204.battleship.ui.adapters.MatrixAdapter
+import dagger.android.support.DaggerFragment
 
-class LobbyActivity : AppCompatActivity() {
+class LobbyFragment : DaggerFragment() {
     private lateinit var matrixView: RecyclerView
     private val matrix = Matrix(10, 10)
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_lobby)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        // Inflate the layout for this fragment
+        return inflater.inflate(R.layout.fragment_lobby, container, false)
+    }
 
-        matrixView = findViewById(R.id.matrix)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        matrixView = view.findViewById(R.id.matrix)
 
-        matrixView.layoutManager = GridLayoutManager(this, matrix.rowCapacity())
-        matrixView.adapter = MatrixAdapter(this, matrix)
+        matrixView.layoutManager = GridLayoutManager(requireContext(), matrix.rowCapacity())
+        matrixView.adapter = MatrixAdapter(requireContext(), matrix)
 
         setLayoutParams()
     }
@@ -28,15 +36,14 @@ class LobbyActivity : AppCompatActivity() {
     private fun setLayoutParams() {
         val metrics = resources.displayMetrics
 
-        val matrixLayout = findViewById<LinearLayout>(R.id.matrix_layout)
-        val playersLayout = findViewById<LinearLayout>(R.id.players_layout)
+        val matrixLayout = requireView().findViewById<LinearLayout>(R.id.matrix_layout)
+        val playersLayout = requireView().findViewById<LinearLayout>(R.id.players_layout)
 
         matrixLayout.layoutParams.width = metrics.widthPixels / 2
         playersLayout.layoutParams.width = metrics.widthPixels / 2
         matrixLayout.layoutParams.height = metrics.heightPixels - convertToPixels(50)
         playersLayout.layoutParams.height = metrics.heightPixels - convertToPixels(50)
 
-        //matrixView.layoutParams.height = metrics.heightPixels - convertToPixels(50)
         matrixView.layoutParams.height = matrixLayout.layoutParams.height - convertToPixels(60)
     }
 

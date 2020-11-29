@@ -14,7 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class BattleshipViewModel @Inject constructor(private val sessionRepository: SessionRepository) : ViewModel() {
+class GameViewModel @Inject constructor(private val sessionRepository: SessionRepository) : ViewModel() {
     var sessionId = MutableLiveData("")
     var hostId = MutableLiveData("")
     var guestId = MutableLiveData("")
@@ -47,8 +47,8 @@ class BattleshipViewModel @Inject constructor(private val sessionRepository: Ses
                             sessionId.postValue(session.id)
                         }
 
-                        if (this@BattleshipViewModel.hostId.value != session.hostId) {
-                            this@BattleshipViewModel.hostId.postValue(session.hostId)
+                        if (this@GameViewModel.hostId.value != session.hostId) {
+                            this@GameViewModel.hostId.postValue(session.hostId)
                         }
 
                         if (guestId.value != session.guestId) {
@@ -93,9 +93,11 @@ class BattleshipViewModel @Inject constructor(private val sessionRepository: Ses
         }
     }
 
-    fun setReady(status: Boolean) {
+    fun changeReady() {
         if (sessionId.value != "") {
-            sessionRepository.updateSessionValue(sessionId.value!!, if (isHost) "hostReady" else "guestReady", status)
+            sessionRepository.updateSessionValue(sessionId.value!!,
+                if (isHost) "hostReady" else "guestReady",
+                if (isHost) !hostReady.value!! else !guestReady.value!!)
         }
     }
 

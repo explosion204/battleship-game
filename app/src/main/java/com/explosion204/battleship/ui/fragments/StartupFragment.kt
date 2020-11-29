@@ -12,7 +12,6 @@ import com.explosion204.battleship.Constants.Companion.USER_ID
 import com.explosion204.battleship.Constants.Companion.USER_NICKNAME
 import com.explosion204.battleship.R
 import com.explosion204.battleship.ui.activities.GameActivity
-import com.explosion204.battleship.viewmodels.BattleshipViewModel
 import com.explosion204.battleship.viewmodels.UserViewModel
 import com.explosion204.battleship.viewmodels.ViewModelFactory
 import com.google.firebase.auth.FirebaseAuth

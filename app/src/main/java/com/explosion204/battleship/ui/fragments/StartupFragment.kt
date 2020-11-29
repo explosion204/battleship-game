@@ -14,6 +14,7 @@ import com.explosion204.battleship.Constants.Companion.USER_ID
 import com.explosion204.battleship.Constants.Companion.USER_NICKNAME
 import com.explosion204.battleship.R
 import com.explosion204.battleship.ui.activities.BattleshipActivity
+import com.explosion204.battleship.ui.activities.LobbyActivity
 import com.explosion204.battleship.viewmodels.UserViewModel
 import com.explosion204.battleship.viewmodels.ViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
@@ -40,6 +41,11 @@ class StartupFragment : DaggerFragment(), FirebaseAuth.AuthStateListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         view.findViewById<ImageButton>(R.id.host_button).setOnClickListener {
+            val intent = Intent(requireContext(), LobbyActivity::class.java)
+            startActivity(intent)
+        }
+
+        view.findViewById<ImageButton>(R.id.join_button).setOnClickListener {
             val intent = Intent(requireContext(), BattleshipActivity::class.java)
             startActivity(intent)
         }

@@ -3,7 +3,6 @@
     package="com.explosion204.battleship">
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
@@ -14,11 +13,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".ui.activities.LobbyActivity"
+            android:screenOrientation="landscape" />
         <activity
             android:name=".ui.activities.BattleshipActivity"
             android:label="@string/title_activity_battleship"
-            android:screenOrientation="landscape">
-        </activity>
+            android:screenOrientation="landscape" />
         <activity
             android:name=".ui.activities.StartupActivity"
             android:screenOrientation="landscape">

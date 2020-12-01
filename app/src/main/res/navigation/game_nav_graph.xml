@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/game_nav_graph"
-    app:startDestination="@id/lobbyFragment">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/game_nav_graph"
+    app:startDestination="@id/loadingLobbyFragment">
 
     <fragment
         android:id="@+id/lobbyFragment"
@@ -15,4 +17,15 @@
         android:id="@+id/battleshipFragment"
         android:name="com.explosion204.battleship.ui.fragments.BattleshipFragment"
         android:label="BattleshipFragment" />
+    <fragment
+        android:id="@+id/loadingLobbyFragment"
+        android:name="com.explosion204.battleship.ui.fragments.LoadingLobbyFragment"
+        android:label="fragment_loading_lobby"
+        tools:layout="@layout/fragment_loading_lobby" >
+        <action
+            android:id="@+id/action_loadingLobbyFragment_to_lobbyFragment"
+            app:destination="@id/lobbyFragment"
+            app:popUpTo="@id/game_nav_graph"
+            app:popUpToInclusive="true" />
+    </fragment>
 </navigation>

@@ -41,7 +41,6 @@ class LobbyFragment : DaggerFragment() {
         viewModelFactory
     }
 
-    private val mAuth = FirebaseAuth.getInstance()
     private lateinit var lobbyId: TextView
     private lateinit var hostPlayerPic: ImageView
     private lateinit var hostPlayerNickname: TextView
@@ -73,15 +72,6 @@ class LobbyFragment : DaggerFragment() {
         hostReady = view.findViewById(R.id.host_ready)
         guestReady = view.findViewById(R.id.guest_ready)
         readyButton = view.findViewById(R.id.ready_button)
-
-        if (mAuth.currentUser != null) {
-            if (requireActivity().intent.getBooleanExtra(IS_HOST_EXTRA, false)) {
-                gameViewModel.initNewSession(mAuth.currentUser!!.uid)
-            }
-            else {
-                gameViewModel.fetchSession(requireActivity().intent.getLongExtra(SESSION_ID_EXTRA, 0), mAuth.currentUser!!.uid)
-            }
-        }
 
         setObservables()
         setListeners()
@@ -119,7 +109,6 @@ class LobbyFragment : DaggerFragment() {
         gameViewModel.hostId.observe(viewLifecycleOwner, Observer { userId ->
             if (userId.isNotEmpty()) {
                 userViewModel.getUser(userId).observe(viewLifecycleOwner, Observer { user ->
-                    Picasso.get().load(user.profileImageUri).transform(CircleTransform()).into(hostPlayerPic)
                     hostPlayerNickname.text = user.nickname
                 })
             }
@@ -128,10 +117,17 @@ class LobbyFragment : DaggerFragment() {
         gameViewModel.guestId.observe(viewLifecycleOwner, Observer { userId ->
             if (userId != null && userId.isNotEmpty()) {
                 userViewModel.getUser(userId).observe(viewLifecycleOwner, Observer { user ->
-                    Picasso.get().load(user.profileImageUri).transform(CircleTransform()).into(guestPlayerPic)
                     guestPlayerNickname.text = user.nickname
                 })
             }
+        })
+
+        gameViewModel.hostBitmap.observe(viewLifecycleOwner, Observer {
+            hostPlayerPic.setImageBitmap(it)
+        })
+
+        gameViewModel.guestBitmap.observe(viewLifecycleOwner, Observer {
+            guestPlayerPic.setImageBitmap(it)
         })
 
         gameViewModel.hostReady.observe(viewLifecycleOwner, Observer {
@@ -142,6 +138,7 @@ class LobbyFragment : DaggerFragment() {
         })
 
         gameViewModel.guestReady.observe(viewLifecycleOwner, Observer {
+            readyButton.text = if (it) getString(R.string.not_ready) else getString(R.string.ready)
             guestReady.setColorFilter(ContextCompat.getColor(requireContext(),
                 if (it) R.color.colorPrimary else android.R.color.darker_gray
             ))

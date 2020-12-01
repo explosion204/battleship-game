@@ -1,5 +1,7 @@
 package com.explosion204.battleship.viewmodels
 
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -7,15 +9,20 @@ import androidx.lifecycle.viewModelScope
 import com.explosion204.battleship.Constants.Companion.ERROR
 import com.explosion204.battleship.data.models.Session
 import com.explosion204.battleship.data.repos.SessionRepository
+import com.explosion204.battleship.data.repos.UserRepository
+import com.explosion204.battleship.ui.util.CircleTransform
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
+import com.squareup.picasso.Picasso
+import com.squareup.picasso.Target
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.lang.Exception
 import javax.inject.Inject
 
-class GameViewModel @Inject constructor(private val sessionRepository: SessionRepository) : ViewModel() {
+class GameViewModel @Inject constructor(private val sessionRepository: SessionRepository, private val userRepository: UserRepository) : ViewModel() {
     var sessionId = MutableLiveData<Long?>(null)
     var hostId = MutableLiveData("")
     var guestId = MutableLiveData("")
@@ -28,30 +35,56 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
     var hostShips = MutableLiveData(0)
     var guestShips = MutableLiveData(0)
 
+    var hostBitmap = MutableLiveData<Bitmap>()
+    var guestBitmap = MutableLiveData<Bitmap>()
+
     var lockRequestUpdates = false
     var lockResponseUpdates = false
+
     private var isHost = true
 
+    private var picassoTargetHost: Target? = null
+    private var picassoTargetGuest: Target? = null
+
+    private var hostProfileImageLoaded = false
+    private var guestProfileImageLoaded = false
+
+
     // TODO: Delete session after the game finished
-    fun initNewSession(hostId: String) {
-        sessionRepository.initNewSession(hostId) {
-            initMutableData(it)
+    // TODO: Delete session after host leaved
+    // TODO: Implement guest disconnect
+    // TODO: Second guest cannot connect to full lobby
+    // Initialize new session if user is host
+    fun initNewSession(userId: String, onComplete: () -> Unit) {
+        sessionRepository.initNewSession(userId) {
+            initMutableData(it) {
+                if (hostProfileImageLoaded) {
+                    onComplete()
+                }
+            }
         }
     }
 
-    fun fetchSession(sessionId: Long, userId: String) {
+    // Fetch data from existing session if user is guest
+    fun fetchSession(sessionId: Long, userId: String, onComplete: () -> Unit) {
         sessionRepository.findSession(sessionId,
-        {
+        { ref ->
             isHost = false
-            initMutableData(it)
-            it.child("guestId").setValue(userId)
+            ref.child("guestId").setValue(userId).addOnSuccessListener {
+                initMutableData(ref) {
+                    if (guestProfileImageLoaded && hostProfileImageLoaded) {
+                        onComplete()
+                    }
+                }
+            }
         },
         {
             //TODO: Implement failure callback
         })
     }
 
-    private fun initMutableData(ref: DatabaseReference) {
+    // Subscribe lifecycle-aware fields of View Model to database changes
+    private fun initMutableData(ref: DatabaseReference, onComplete: () -> Unit) {
         ref.addValueEventListener(object : ValueEventListener {
             override fun onCancelled(error: DatabaseError) {
                 Log.e(ERROR, error.toString())
@@ -67,10 +100,20 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
 
                     if (this@GameViewModel.hostId.value != session.hostId) {
                         this@GameViewModel.hostId.postValue(session.hostId)
+
+                        fetchHostProfileImageBitmap(session.hostId) {
+                            onComplete()
+                        }
                     }
 
                     if (guestId.value != session.guestId) {
                         guestId.postValue(session.guestId)
+
+                        if (session.guestId != null) {
+                            fetchGuestProfileImageBitmap(session.guestId) {
+                                onComplete()
+                            }
+                        }
                     }
 
                     if (hostReady.value != session.hostReady) {
@@ -110,6 +153,40 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
         })
     }
 
+    private fun fetchHostProfileImageBitmap(hostId: String, onComplete: () -> Unit) {
+        userRepository.getProfileImageUri(hostId) { profileImageUri ->
+            picassoTargetHost = object : Target {
+                override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
+
+                override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {}
+
+                override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
+                    hostBitmap.postValue(bitmap)
+                    hostProfileImageLoaded = true
+                    onComplete()
+                }
+            }
+            Picasso.get().load(profileImageUri).transform(CircleTransform()).into(picassoTargetHost!!)
+        }
+    }
+
+    private fun fetchGuestProfileImageBitmap(guestId: String, onComplete: () -> Unit) {
+        userRepository.getProfileImageUri(guestId) { profileImageUri ->
+            picassoTargetGuest = object : Target {
+                override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
+
+                override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {}
+
+                override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
+                    guestBitmap.postValue(bitmap)
+                    guestProfileImageLoaded = true
+                    onComplete()
+                }
+            }
+            Picasso.get().load(profileImageUri).transform(CircleTransform()).into(picassoTargetGuest!!)
+        }
+    }
+
     fun changeReady() {
         if (sessionId.value != null) {
             sessionRepository.updateSessionValue(sessionId.value!!,
@@ -136,7 +213,7 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
         }
     }
 
-    fun findSession(sessionId: Long, successCallback: () -> Unit, failureCallback: () -> Unit) {
-        sessionRepository.findSession(sessionId, { successCallback() }, failureCallback)
+    fun findSession(sessionId: Long, onSuccess: () -> Unit, onFailure: () -> Unit) {
+        sessionRepository.findSession(sessionId, { onSuccess() }, onFailure)
     }
 }

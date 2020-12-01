@@ -16,6 +16,9 @@ abstract class FragmentBuilderModule {
     abstract fun contributesInjectEditUserDialogFragment(): EditUserDialogFragment
 
     @ContributesAndroidInjector(modules = [ViewModelModule::class])
+    abstract fun contributesInjectLoadingLobbyFragment(): LoadingLobbyFragment
+
+    @ContributesAndroidInjector(modules = [ViewModelModule::class])
     abstract fun contributesInjectLobbyFragment(): LobbyFragment
 
     @ContributesAndroidInjector(modules = [ViewModelModule::class])

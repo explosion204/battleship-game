@@ -1,12 +1,15 @@
 package com.explosion204.battleship.ui.fragments
 
 import android.content.Intent
+import android.opengl.Visibility
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.cardview.widget.CardView
+import androidx.core.view.isVisible
 import androidx.navigation.Navigation
 import com.explosion204.battleship.Constants.Companion.GOOGLE_SIGN_IN
 import com.explosion204.battleship.R
@@ -22,6 +25,8 @@ import dagger.android.support.DaggerFragment
 class SignInFragment : DaggerFragment() {
     private lateinit var mAuth: FirebaseAuth
     private lateinit var mGoogleSignInClient: GoogleSignInClient
+    private lateinit var loadingView: ProgressBar
+    private lateinit var signInWithGoogleButton: CardView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -39,12 +44,17 @@ class SignInFragment : DaggerFragment() {
             Navigation.findNavController(view).navigate(R.id.action_signinFragment_to_startupFragment)
         }
 
-        view.findViewById<CardView>(R.id.sign_in_google).setOnClickListener {
+        loadingView = view.findViewById(R.id.loading_view)
+        signInWithGoogleButton = view.findViewById(R.id.sign_in_google)
+        signInWithGoogleButton.setOnClickListener {
             signInWithGoogle()
         }
     }
 
     private fun signInWithGoogle() {
+        signInWithGoogleButton.isEnabled = false
+        loadingView.visibility = View.VISIBLE
+
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()

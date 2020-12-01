@@ -41,6 +41,17 @@ class UserRepository @Inject constructor(
             }
     }
 
+    fun getProfileImageUri(id: String, callback: (uri: String) -> Unit) {
+        fireStore.collection("users")
+            .whereEqualTo("userId", id)
+            .get()
+            .addOnSuccessListener {
+                if (it.documents.size != 0) {
+                    callback(it.documents[0].get("profileImageUri").toString())
+                }
+            }
+    }
+
     fun uploadProfileImage(uid: String, bitmap: Bitmap) {
         var stream = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)

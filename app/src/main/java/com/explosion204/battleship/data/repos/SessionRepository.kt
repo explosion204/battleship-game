@@ -16,7 +16,7 @@ import javax.inject.Inject
 class SessionRepository @Inject constructor(private val firebaseDatabase: FirebaseDatabase) {
     private val dbSessions = firebaseDatabase.getReference(SESSIONS_DB)
 
-    fun initNewSession(hostId: String, callback: (ref: DatabaseReference) -> Unit) {
+    fun initNewSession(hostId: String, onComplete: (ref: DatabaseReference) -> Unit) {
         dbSessions.child("sessionsCount").addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onCancelled(error: DatabaseError) {}
 
@@ -39,7 +39,7 @@ class SessionRepository @Inject constructor(private val firebaseDatabase: Fireba
                 dbSessions.child(newSession.id!!.toString())
                     .setValue(newSession)
                     .addOnSuccessListener {
-                        callback(dbSessions.child(newSession.id!!.toString()))
+                        onComplete(dbSessions.child(newSession.id!!.toString()))
                     }
 
             }
@@ -52,18 +52,18 @@ class SessionRepository @Inject constructor(private val firebaseDatabase: Fireba
 
     fun findSession(
         sessionId: Long,
-        successCallback: (ref: DatabaseReference) -> Unit,
-        failureCallback: () -> Unit
+        onSuccess: (ref: DatabaseReference) -> Unit,
+        onFailure: () -> Unit
     ) {
         dbSessions.child(sessionId.toString()).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onCancelled(error: DatabaseError) {}
 
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
-                    successCallback(snapshot.ref)
+                    onSuccess(snapshot.ref)
                 }
                 else {
-                    failureCallback()
+                    onFailure()
                 }
             }
 

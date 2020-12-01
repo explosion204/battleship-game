@@ -9,13 +9,14 @@ import com.explosion204.battleship.data.models.Session
 import com.explosion204.battleship.data.repos.SessionRepository
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class GameViewModel @Inject constructor(private val sessionRepository: SessionRepository) : ViewModel() {
-    var sessionId = MutableLiveData("")
+    var sessionId = MutableLiveData<Long?>(null)
     var hostId = MutableLiveData("")
     var guestId = MutableLiveData("")
     var hostReady = MutableLiveData(false)
@@ -29,72 +30,88 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
 
     var lockRequestUpdates = false
     var lockResponseUpdates = false
-    var isHost = true
+    private var isHost = true
 
     // TODO: Delete session after the game finished
-    fun initMutableLiveData(hostId: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            sessionRepository.initNewSession(hostId).addValueEventListener(object : ValueEventListener {
-                override fun onCancelled(error: DatabaseError) {
-                    Log.e(ERROR, error.toString())
-                }
-
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val session = snapshot.getValue(Session::class.java)
-
-                    if (session != null) {
-                        if (sessionId.value != session.id) {
-                            sessionId.postValue(session.id)
-                        }
-
-                        if (this@GameViewModel.hostId.value != session.hostId) {
-                            this@GameViewModel.hostId.postValue(session.hostId)
-                        }
-
-                        if (guestId.value != session.guestId) {
-                            guestId.postValue(session.guestId)
-                        }
-
-                        if (hostReady.value != session.hostReady) {
-                            hostReady.postValue(session.hostReady)
-                        }
-
-                        if (guestReady.value != session.guestReady) {
-                            guestReady.postValue(session.guestReady)
-                        }
-
-                        if (gameRunning.value != session.gameRunning) {
-                            gameRunning.postValue(session.gameRunning)
-                        }
-
-                        if (hostTurn.value != session.hostTurn) {
-                            hostTurn.postValue(session.hostTurn)
-                        }
-
-                        if (fireRequest.value != session.fireRequest && !lockRequestUpdates) {
-                            fireRequest.postValue(session.fireRequest)
-                        }
-
-                        if (fireResponse.value != session.fireResponse && !lockResponseUpdates) {
-                            fireResponse.postValue(session.fireResponse)
-                        }
-
-                        if (hostShips.value != session.hostShips) {
-                            hostShips.postValue(session.hostShips)
-                        }
-
-                        if (guestShips.value != session.guestShips) {
-                            guestShips.postValue(session.guestShips)
-                        }
-                    }
-                }
-
-            })
+    fun initNewSession(hostId: String) {
+        sessionRepository.initNewSession(hostId) {
+            initMutableData(it)
         }
     }
 
+    fun fetchSession(sessionId: Long, userId: String) {
+        sessionRepository.findSession(sessionId,
+        {
+            isHost = false
+            initMutableData(it)
+            it.child("guestId").setValue(userId)
+        },
+        {
+            //TODO: Implement failure callback
+        })
+    }
+
+    private fun initMutableData(ref: DatabaseReference) {
+        ref.addValueEventListener(object : ValueEventListener {
+            override fun onCancelled(error: DatabaseError) {
+                Log.e(ERROR, error.toString())
+            }
+
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val session = snapshot.getValue(Session::class.java)
+
+                if (session != null) {
+                    if (sessionId.value != session.id) {
+                        sessionId.postValue(session.id)
+                    }
+
+                    if (this@GameViewModel.hostId.value != session.hostId) {
+                        this@GameViewModel.hostId.postValue(session.hostId)
+                    }
+
+                    if (guestId.value != session.guestId) {
+                        guestId.postValue(session.guestId)
+                    }
+
+                    if (hostReady.value != session.hostReady) {
+                        hostReady.postValue(session.hostReady)
+                    }
+
+                    if (guestReady.value != session.guestReady) {
+                        guestReady.postValue(session.guestReady)
+                    }
+
+                    if (gameRunning.value != session.gameRunning) {
+                        gameRunning.postValue(session.gameRunning)
+                    }
+
+                    if (hostTurn.value != session.hostTurn) {
+                        hostTurn.postValue(session.hostTurn)
+                    }
+
+                    if (fireRequest.value != session.fireRequest && !lockRequestUpdates) {
+                        fireRequest.postValue(session.fireRequest)
+                    }
+
+                    if (fireResponse.value != session.fireResponse && !lockResponseUpdates) {
+                        fireResponse.postValue(session.fireResponse)
+                    }
+
+                    if (hostShips.value != session.hostShips) {
+                        hostShips.postValue(session.hostShips)
+                    }
+
+                    if (guestShips.value != session.guestShips) {
+                        guestShips.postValue(session.guestShips)
+                    }
+                }
+            }
+
+        })
+    }
+
     fun changeReady() {
-        if (sessionId.value != "") {
+        if (sessionId.value != null) {
             sessionRepository.updateSessionValue(sessionId.value!!,
                 if (isHost) "hostReady" else "guestReady",
                 if (isHost) !hostReady.value!! else !guestReady.value!!)
@@ -102,20 +119,24 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
     }
 
     fun setGameRunning(status: Boolean) {
-        if (sessionId.value != "" && isHost && hostReady.value!! && guestReady.value!!) {
+        if (sessionId.value != null && isHost && hostReady.value!! && guestReady.value!!) {
             sessionRepository.updateSessionValue(sessionId.value!!, "gameRunning", status)
         }
     }
 
     fun sendFireRequest(i: Int, j: Int) {
-        if (sessionId.value != "") {
+        if (sessionId.value != null) {
             sessionRepository.updateSessionValue(sessionId.value!!, "fireRequest", "$i-$j")
         }
     }
 
     fun finishTurn() {
-        if (sessionId.value != "") {
+        if (sessionId.value != null) {
             sessionRepository.updateSessionValue(sessionId.value!!, "gameRunning", !hostTurn.value!!)
         }
+    }
+
+    fun findSession(sessionId: Long, successCallback: () -> Unit, failureCallback: () -> Unit) {
+        sessionRepository.findSession(sessionId, { successCallback() }, failureCallback)
     }
 }

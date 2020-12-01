@@ -8,8 +8,8 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.Navigation
+import com.explosion204.battleship.Constants.Companion.IS_HOST_EXTRA
 import com.explosion204.battleship.Constants.Companion.USER_ID
-import com.explosion204.battleship.Constants.Companion.USER_NICKNAME
 import com.explosion204.battleship.R
 import com.explosion204.battleship.ui.activities.GameActivity
 import com.explosion204.battleship.viewmodels.UserViewModel
@@ -24,10 +24,6 @@ class StartupFragment : DaggerFragment(), FirebaseAuth.AuthStateListener {
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
 
-    private val userViewModel: UserViewModel by activityViewModels {
-        viewModelFactory
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -39,13 +35,18 @@ class StartupFragment : DaggerFragment(), FirebaseAuth.AuthStateListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         view.findViewById<ImageButton>(R.id.host_button).setOnClickListener {
             val intent = Intent(requireContext(), GameActivity::class.java)
+            intent.putExtra(IS_HOST_EXTRA, true)
             startActivity(intent)
+        }
+
+        view.findViewById<ImageButton>(R.id.join_button).setOnClickListener {
+            val dialogFragment = JoinGameDialogFragment()
+            dialogFragment.show(requireActivity().supportFragmentManager, "DIALOG_FRAGMENT")
         }
 
         view.findViewById<ImageButton>(R.id.edit_button).setOnClickListener {
             val dialogFragment = EditUserDialogFragment()
             val args = Bundle()
-            args.putString(USER_NICKNAME, userViewModel.userNickname)
             args.putString(USER_ID, mAuth.currentUser!!.uid)
 
             dialogFragment.arguments = args

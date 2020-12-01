@@ -4,7 +4,7 @@ import com.explosion204.battleship.Constants.Companion.FIRE_REQUEST_PASS
 import com.explosion204.battleship.Constants.Companion.FIRE_RESPONSE_PASS
 
 data class Session(
-    var id: String? = null,
+    var id: Long? = null,
     val hostId: String = "",
     val guestId: String? = null,
     var hostReady: Boolean = false,

@@ -13,10 +13,10 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.observe
 import com.explosion204.battleship.Constants.Companion.PICK_IMAGE_CODE
 import com.explosion204.battleship.Constants.Companion.USER_ID
-import com.explosion204.battleship.Constants.Companion.USER_NICKNAME
 import com.explosion204.battleship.R
 import com.explosion204.battleship.ui.util.CircleTransform
 import com.explosion204.battleship.viewmodels.UserViewModel
@@ -30,12 +30,14 @@ class EditUserDialogFragment : DaggerDialogFragment() {
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
 
-    private val userViewModel : UserViewModel by activityViewModels {
+    private val userViewModel : UserViewModel by viewModels {
         viewModelFactory
     }
 
     private lateinit var nicknameEditText: AppCompatEditText
     private lateinit var profileImageView: ImageView
+    private lateinit var saveChangesButton: Button
+
     private val mAuth = FirebaseAuth.getInstance()
 
     override fun onCreateView(
@@ -48,8 +50,13 @@ class EditUserDialogFragment : DaggerDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         nicknameEditText = view.findViewById(R.id.nickname)
-        nicknameEditText.setText(requireArguments().getString(USER_NICKNAME))
-        view.findViewById<Button>(R.id.save_changes_button).setOnClickListener {
+        saveChangesButton = view.findViewById(R.id.save_changes_button)
+
+        if (userViewModel.userNickname.isNotEmpty()) {
+            nicknameEditText.setText(userViewModel.userNickname)
+        }
+
+        saveChangesButton.setOnClickListener {
             userViewModel.setUserNickname(requireArguments().getString(USER_ID)!!, nicknameEditText.text.toString())
             dismiss()
         }
@@ -65,6 +72,10 @@ class EditUserDialogFragment : DaggerDialogFragment() {
 
         if (mAuth.currentUser != null) {
             userViewModel.getUser(mAuth.currentUser!!.uid).observe(viewLifecycleOwner) {
+                if (it.nickname.isNotEmpty()) {
+                    saveChangesButton.isEnabled = true
+                    nicknameEditText.setText(it.nickname)
+                }
                 Picasso.get().load(it.profileImageUri).transform(CircleTransform()).into(profileImageView)
             }
         }

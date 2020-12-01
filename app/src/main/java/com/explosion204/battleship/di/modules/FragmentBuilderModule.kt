@@ -20,4 +20,7 @@ abstract class FragmentBuilderModule {
 
     @ContributesAndroidInjector(modules = [ViewModelModule::class])
     abstract fun contributesInjectBattleshipFragment(): BattleshipFragment
+
+    @ContributesAndroidInjector(modules = [ViewModelModule::class])
+    abstract fun contributesInjectJoinGameDialogFragment(): JoinGameDialogFragment
 }

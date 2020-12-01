@@ -13,6 +13,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.explosion204.battleship.Constants.Companion.IS_HOST_EXTRA
+import com.explosion204.battleship.Constants.Companion.SESSION_ID_EXTRA
 import com.explosion204.battleship.Matrix
 import com.explosion204.battleship.R
 import com.explosion204.battleship.ui.adapters.MatrixAdapter
@@ -73,7 +75,12 @@ class LobbyFragment : DaggerFragment() {
         readyButton = view.findViewById(R.id.ready_button)
 
         if (mAuth.currentUser != null) {
-            gameViewModel.initMutableLiveData(mAuth.currentUser!!.uid)
+            if (requireActivity().intent.getBooleanExtra(IS_HOST_EXTRA, false)) {
+                gameViewModel.initNewSession(mAuth.currentUser!!.uid)
+            }
+            else {
+                gameViewModel.fetchSession(requireActivity().intent.getLongExtra(SESSION_ID_EXTRA, 0), mAuth.currentUser!!.uid)
+            }
         }
 
         setObservables()

@@ -128,7 +128,7 @@
                     android:layout_height="match_parent"
                     android:layout_marginStart="5dp"
                     android:gravity="center_vertical"
-                    android:text="Player #2" />
+                    android:text="@string/empty_slot" />
 
                 <View
                     android:layout_width="0dp"

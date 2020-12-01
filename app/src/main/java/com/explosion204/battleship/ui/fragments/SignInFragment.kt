@@ -85,6 +85,7 @@ class SignInFragment : DaggerFragment() {
                     }
                 }
                 catch (e: ApiException) {
+                    //TODO: stop loading animation
                     Toast.makeText(requireContext(), "Cannot sign in with Google", Toast.LENGTH_LONG).show()
                 }
             }

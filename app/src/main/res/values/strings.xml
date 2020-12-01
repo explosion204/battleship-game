@@ -17,4 +17,5 @@
     <string name="not_ready">Not ready</string>
     <string name="lobby_id">Lobby ID</string>
     <string name="connect">Connect</string>
+    <string name="empty_slot">Empty slot</string>
 </resources>

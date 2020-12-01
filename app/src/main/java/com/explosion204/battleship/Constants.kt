@@ -11,7 +11,13 @@ class Constants {
 
         const val SESSIONS_DB = "sessions"
 
+        const val GAME_STATE_LOADING = "com.explosion204.battleship.GAME_STATE_LOADING"
+        const val GAME_STATE_IN_LOBBY = "com.explosion204.battleship.GAME_STATE_IN_LOBBY"
+        const val GAME_STATE_IN_PROGRESS = "com.explosion204.battleship.GAME_STATE_IN_PROGRESS"
+
         const val FIRE_REQUEST_PASS = "com.explosion204.battleship.FIRE_REQUEST_PASS"
         const val FIRE_RESPONSE_PASS = "com.explosion204.battleship.FIRE_RESPONSE_PASS"
+        const val HOST_DISCONNECTED = "com.explosion204.battleship.HOST_DISCONNECTED"
+        const val GUEST_DISCONNECTED = "com.explosion204.battleship.GUEST_DISCONNECTED"
     }
 }

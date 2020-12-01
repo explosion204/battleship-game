@@ -7,6 +7,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.explosion204.battleship.Constants.Companion.ERROR
+import com.explosion204.battleship.Constants.Companion.GAME_STATE_IN_LOBBY
+import com.explosion204.battleship.Constants.Companion.GAME_STATE_LOADING
+import com.explosion204.battleship.Constants.Companion.GUEST_DISCONNECTED
+import com.explosion204.battleship.Constants.Companion.HOST_DISCONNECTED
 import com.explosion204.battleship.data.models.Session
 import com.explosion204.battleship.data.repos.SessionRepository
 import com.explosion204.battleship.data.repos.UserRepository
@@ -23,6 +27,8 @@ import java.lang.Exception
 import javax.inject.Inject
 
 class GameViewModel @Inject constructor(private val sessionRepository: SessionRepository, private val userRepository: UserRepository) : ViewModel() {
+    private var gameState = GAME_STATE_LOADING
+
     var sessionId = MutableLiveData<Long?>(null)
     var hostId = MutableLiveData("")
     var guestId = MutableLiveData("")
@@ -51,15 +57,16 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
 
 
     // TODO: Delete session after the game finished
-    // TODO: Delete session after host leaved
-    // TODO: Implement guest disconnect
     // TODO: Second guest cannot connect to full lobby
-    // Initialize new session if user is host
+    // Initialize new session if user is host (!!!onComplete callback executed only in GAME_STATE_LOADING!!!)
     fun initNewSession(userId: String, onComplete: () -> Unit) {
         sessionRepository.initNewSession(userId) {
             initMutableData(it) {
                 if (hostProfileImageLoaded) {
-                    onComplete()
+                    if (gameState == GAME_STATE_LOADING) {
+                        onComplete()
+                        gameState = GAME_STATE_IN_LOBBY
+                    }
                 }
             }
         }
@@ -101,18 +108,24 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
                     if (this@GameViewModel.hostId.value != session.hostId) {
                         this@GameViewModel.hostId.postValue(session.hostId)
 
-                        fetchHostProfileImageBitmap(session.hostId) {
-                            onComplete()
+                        if (!hostProfileImageLoaded) {
+                            fetchHostProfileImageBitmap(session.hostId) {
+                                onComplete()
+                            }
                         }
                     }
 
                     if (guestId.value != session.guestId) {
                         guestId.postValue(session.guestId)
 
-                        if (session.guestId != null) {
+                        if (session.guestId != null && !guestProfileImageLoaded) {
                             fetchGuestProfileImageBitmap(session.guestId) {
                                 onComplete()
                             }
+                        }
+
+                        if (session.guestId == GUEST_DISCONNECTED) {
+                            guestProfileImageLoaded = false
                         }
                     }
 
@@ -195,6 +208,7 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
         }
     }
 
+    // TODO: change gameStatus to GAME_STATUS_IN_PROGRESS
     fun setGameRunning(status: Boolean) {
         if (sessionId.value != null && isHost && hostReady.value!! && guestReady.value!!) {
             sessionRepository.updateSessionValue(sessionId.value!!, "gameRunning", status)
@@ -210,6 +224,17 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
     fun finishTurn() {
         if (sessionId.value != null) {
             sessionRepository.updateSessionValue(sessionId.value!!, "gameRunning", !hostTurn.value!!)
+        }
+    }
+
+    fun leaveLobby() {
+        if (isHost) {
+            sessionRepository.updateSessionValue(sessionId.value!!, "hostId", HOST_DISCONNECTED)
+            sessionRepository.deleteSession(sessionId.value!!)
+        }
+        else {
+            sessionRepository.updateSessionValue(sessionId.value!!, "guestId", GUEST_DISCONNECTED)
+            sessionRepository.updateSessionValue(sessionId.value!!, "guestReady", false)
         }
     }
 

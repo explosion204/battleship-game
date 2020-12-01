@@ -14,9 +14,10 @@ import javax.inject.Inject
 class UserViewModel @Inject constructor(private val userRepository: UserRepository) : ViewModel() {
     var userNickname = ""
 
-    private val user = MutableLiveData<User>()
+    //private lateinit var user: MutableLiveData<User>
 
     fun getUser(id: String): LiveData<User>  {
+        val user = MutableLiveData<User>()
         viewModelScope.launch(Dispatchers.IO) {
             userRepository.getUser(id).addSnapshotListener { value, _ ->
                 if (value != null) {

@@ -50,6 +50,10 @@ class SessionRepository @Inject constructor(private val firebaseDatabase: Fireba
         dbSessions.child(sessionId.toString()).child(field).setValue(value)
     }
 
+    fun deleteSession(sessionId: Long) {
+        dbSessions.child(sessionId.toString()).ref.removeValue()
+    }
+
     fun findSession(
         sessionId: Long,
         onSuccess: (ref: DatabaseReference) -> Unit,

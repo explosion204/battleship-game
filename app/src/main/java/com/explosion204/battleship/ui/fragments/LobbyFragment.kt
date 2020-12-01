@@ -13,6 +13,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.explosion204.battleship.Constants.Companion.GUEST_DISCONNECTED
+import com.explosion204.battleship.Constants.Companion.HOST_DISCONNECTED
 import com.explosion204.battleship.Constants.Companion.IS_HOST_EXTRA
 import com.explosion204.battleship.Constants.Companion.SESSION_ID_EXTRA
 import com.explosion204.battleship.Matrix
@@ -50,6 +52,8 @@ class LobbyFragment : DaggerFragment() {
     private lateinit var guestReady: ImageView
     private lateinit var readyButton: Button
 
+    private var isHost = false
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -72,6 +76,8 @@ class LobbyFragment : DaggerFragment() {
         hostReady = view.findViewById(R.id.host_ready)
         guestReady = view.findViewById(R.id.guest_ready)
         readyButton = view.findViewById(R.id.ready_button)
+
+        isHost = requireActivity().intent.getBooleanExtra(IS_HOST_EXTRA, false)
 
         setObservables()
         setListeners()
@@ -108,17 +114,32 @@ class LobbyFragment : DaggerFragment() {
 
         gameViewModel.hostId.observe(viewLifecycleOwner, Observer { userId ->
             if (userId.isNotEmpty()) {
-                userViewModel.getUser(userId).observe(viewLifecycleOwner, Observer { user ->
-                    hostPlayerNickname.text = user.nickname
-                })
+                when (userId) {
+                    HOST_DISCONNECTED -> {
+                        requireActivity().finish()
+                    }
+                    else -> {
+                        userViewModel.getUser(userId).observe(viewLifecycleOwner, Observer { user ->
+                            hostPlayerNickname.text = user.nickname
+                        })
+                    }
+                }
             }
         })
 
         gameViewModel.guestId.observe(viewLifecycleOwner, Observer { userId ->
             if (userId != null && userId.isNotEmpty()) {
-                userViewModel.getUser(userId).observe(viewLifecycleOwner, Observer { user ->
-                    guestPlayerNickname.text = user.nickname
-                })
+                when (userId) {
+                    GUEST_DISCONNECTED -> {
+                        guestPlayerNickname.text = getString(R.string.empty_slot)
+                        guestPlayerPic.setImageResource(0)
+                    }
+                    else -> {
+                        userViewModel.getUser(userId).observe(viewLifecycleOwner, Observer { user ->
+                            guestPlayerNickname.text = user.nickname
+                        })
+                    }
+                }
             }
         })
 
@@ -131,14 +152,20 @@ class LobbyFragment : DaggerFragment() {
         })
 
         gameViewModel.hostReady.observe(viewLifecycleOwner, Observer {
-            readyButton.text = if (it) getString(R.string.not_ready) else getString(R.string.ready)
+            if (isHost) {
+                readyButton.text = if (it) getString(R.string.not_ready) else getString(R.string.ready)
+            }
+
             hostReady.setColorFilter(ContextCompat.getColor(requireContext(),
                 if (it) R.color.colorPrimary else android.R.color.darker_gray
             ))
         })
 
         gameViewModel.guestReady.observe(viewLifecycleOwner, Observer {
-            readyButton.text = if (it) getString(R.string.not_ready) else getString(R.string.ready)
+            if (!isHost) {
+                readyButton.text = if (it) getString(R.string.not_ready) else getString(R.string.ready)
+            }
+
             guestReady.setColorFilter(ContextCompat.getColor(requireContext(),
                 if (it) R.color.colorPrimary else android.R.color.darker_gray
             ))
@@ -147,5 +174,11 @@ class LobbyFragment : DaggerFragment() {
         gameViewModel.gameRunning.observe(viewLifecycleOwner, Observer {
             //TODO: Implement
         })
+    }
+
+    override fun onDestroy() {
+        gameViewModel.leaveLobby()
+
+        super.onDestroy()
     }
 }

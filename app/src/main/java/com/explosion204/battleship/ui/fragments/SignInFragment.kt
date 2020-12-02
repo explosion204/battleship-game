@@ -67,8 +67,13 @@ class SignInFragment : DaggerFragment() {
     private fun firebaseAuthWithGoogle(account: GoogleSignInAccount) {
         val credential = GoogleAuthProvider.getCredential(account.idToken, null)
         mAuth.signInWithCredential(credential)
-            .addOnCompleteListener(requireActivity()) {
+            .addOnSuccessListener {
                 Navigation.findNavController(requireView()).navigate(R.id.action_signinFragment_to_startupFragment)
+            }
+            .addOnFailureListener {
+                signInWithGoogleButton.isEnabled = true
+                loadingView.visibility = View.GONE
+                Toast.makeText(requireContext(), "Cannot sign in with Google. Check your internet connection.", Toast.LENGTH_LONG).show()
             }
     }
 
@@ -85,8 +90,9 @@ class SignInFragment : DaggerFragment() {
                     }
                 }
                 catch (e: ApiException) {
-                    //TODO: stop loading animation
-                    Toast.makeText(requireContext(), "Cannot sign in with Google", Toast.LENGTH_LONG).show()
+                    signInWithGoogleButton.isEnabled = true
+                    loadingView.visibility = View.GONE
+                    Toast.makeText(requireContext(), "Cannot sign in with Google.", Toast.LENGTH_LONG).show()
                 }
             }
         }

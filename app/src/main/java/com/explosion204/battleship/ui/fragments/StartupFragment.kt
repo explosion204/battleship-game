@@ -42,6 +42,7 @@ class StartupFragment : DaggerFragment(), FirebaseAuth.AuthStateListener {
             dialogFragment.show(requireActivity().supportFragmentManager, "DIALOG_FRAGMENT")
         }
 
+        // TODO: fetch data before
         view.findViewById<Button>(R.id.edit_button).setOnClickListener {
             val dialogFragment = EditUserDialogFragment()
             val args = Bundle()

@@ -63,7 +63,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/colorPrimary"
-                    android:text="@string/save_changes"
+                    android:text="@string/set_nickname"
                     android:layout_margin="10dp"
                     android:textColor="@android:color/white"
                     android:enabled="false" />

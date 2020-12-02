@@ -165,6 +165,8 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
             }
 
         })
+
+        ref.onDisconnect().removeValue()
     }
 
     private fun fetchHostProfileImageBitmap(hostId: String, onComplete: () -> Unit) {

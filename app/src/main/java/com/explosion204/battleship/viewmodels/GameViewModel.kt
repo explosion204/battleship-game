@@ -27,7 +27,10 @@ import com.squareup.picasso.Target
 import java.lang.Exception
 import javax.inject.Inject
 
-class GameViewModel @Inject constructor(private val sessionRepository: SessionRepository, private val userRepository: UserRepository) : ViewModel() {
+class GameViewModel @Inject constructor(
+    private val sessionRepository: SessionRepository,
+    private val userRepository: UserRepository
+) : ViewModel() {
     val gameController = GameController()
 
     var sessionId = MutableLiveData<Long?>(null)
@@ -58,7 +61,7 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
 
     // TODO: Delete session after the game finished
     // TODO: Second guest cannot connect to lobby (implemented, not tested)
-    // TODO: Cannot connect to lobby with the same uid as host
+    // TODO: Cannot connect to lobby with the same uid as host (implemented, not tested)
     // Initialize new session if user is host (!!!onComplete callback executed only in GAME_STATE_LOADING!!!)
     fun initNewSession(userId: String, onComplete: () -> Unit) {
         sessionRepository.initNewSession(userId) {
@@ -74,26 +77,31 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
     }
 
     // Fetch data from existing session if user is guest
-    fun fetchSession(sessionId: Long, userId: String, onComplete: () -> Unit, onFailure: () -> Unit) {
+    fun fetchSession(
+        sessionId: Long,
+        userId: String,
+        onComplete: () -> Unit,
+        onFailure: () -> Unit
+    ) {
         sessionRepository.findSession(sessionId,
-        { ref ->
-            isHost = false
-            ref.child("guestId").setValue(userId).addOnSuccessListener {
-                initLiveData(ref) {
-                    if (guestProfileImageLoaded && hostProfileImageLoaded) {
-                        onComplete()
+            { ref ->
+                isHost = false
+                ref.child("guestId").setValue(userId).addOnSuccessListener {
+                    initLiveData(ref) {
+                        if (guestProfileImageLoaded && hostProfileImageLoaded) {
+                            onComplete()
+                        }
                     }
                 }
-            }
-        },
-        {
-            onFailure()
-        })
+            },
+            {
+                onFailure()
+            })
     }
 
     // Subscribe lifecycle-aware fields of View Model to database changes
     private fun initLiveData(ref: DatabaseReference, onComplete: () -> Unit) {
-       valueListener = ref.addValueEventListener(object : ValueEventListener {
+        valueListener = ref.addValueEventListener(object : ValueEventListener {
             override fun onCancelled(error: DatabaseError) {
                 Log.e(ERROR, error.toString())
             }
@@ -182,7 +190,8 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
                     onComplete()
                 }
             }
-            Picasso.get().load(profileImageUri).transform(CircleTransform()).into(picassoTargetHost!!)
+            Picasso.get().load(profileImageUri).transform(CircleTransform())
+                .into(picassoTargetHost!!)
         }
     }
 
@@ -199,15 +208,18 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
                     onComplete()
                 }
             }
-            Picasso.get().load(profileImageUri).transform(CircleTransform()).into(picassoTargetGuest!!)
+            Picasso.get().load(profileImageUri).transform(CircleTransform())
+                .into(picassoTargetGuest!!)
         }
     }
 
     fun changeReady() {
         if (sessionId.value != null) {
-            sessionRepository.updateSessionValue(sessionId.value!!,
+            sessionRepository.updateSessionValue(
+                sessionId.value!!,
                 if (isHost) "hostReady" else "guestReady",
-                if (isHost) !hostReady.value!! else !guestReady.value!!)
+                if (isHost) !hostReady.value!! else !guestReady.value!!
+            )
         }
     }
 
@@ -226,7 +238,11 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
 
     fun finishTurn() {
         if (sessionId.value != null) {
-            sessionRepository.updateSessionValue(sessionId.value!!, "gameRunning", !hostTurn.value!!)
+            sessionRepository.updateSessionValue(
+                sessionId.value!!,
+                "gameRunning",
+                !hostTurn.value!!
+            )
         }
     }
 
@@ -239,8 +255,7 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
             sessionRepository.updateSessionValue(sessionId.value!!, "hostId", HOST_DISCONNECTED)
             sessionRepository.detachValueEventListener(sessionId.value!!, valueListener!!)
             sessionRepository.deleteSession(sessionId.value!!)
-        }
-        else {
+        } else {
             sessionRepository.updateSessionValue(sessionId.value!!, "guestId", GUEST_DISCONNECTED)
             sessionRepository.detachValueEventListener(sessionId.value!!, valueListener!!)
             sessionRepository.updateSessionValue(sessionId.value!!, "guestReady", false)

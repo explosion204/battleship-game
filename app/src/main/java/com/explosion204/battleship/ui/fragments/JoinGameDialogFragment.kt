@@ -53,13 +53,17 @@ class JoinGameDialogFragment : DaggerDialogFragment() {
                         mAuth.currentUser!!.uid,
                         { // success callback
                             if (gameViewModel.guestId.value != null) {
-                                val intent = Intent(requireContext(), GameActivity::class.java)
-                                intent.putExtra(IS_HOST_EXTRA, false)
-                                intent.putExtra(SESSION_ID_EXTRA, lobbyId.text.toString().toLong())
-                                startActivity(intent)
-                                dismiss()
-                            }
-                            else {
+                                if (gameViewModel.hostId.value != mAuth.currentUser!!.uid) {
+                                    val intent = Intent(requireContext(), GameActivity::class.java)
+                                    intent.putExtra(IS_HOST_EXTRA, false)
+                                    intent.putExtra(SESSION_ID_EXTRA, lobbyId.text.toString().toLong())
+                                    startActivity(intent)
+                                    dismiss()
+                                } else {
+                                    it.isEnabled = true
+                                    Toast.makeText(requireContext(), getString(R.string.lobby_is_full), Toast.LENGTH_SHORT).show()
+                                }
+                            } else {
                                 it.isEnabled = true
                                 Toast.makeText(requireContext(), getString(R.string.lobby_is_full), Toast.LENGTH_SHORT).show()
                             }
@@ -69,8 +73,7 @@ class JoinGameDialogFragment : DaggerDialogFragment() {
                             Toast.makeText(requireContext(), getString(R.string.invalid_lobby_id), Toast.LENGTH_SHORT).show()
                         }
                     )
-                }
-                catch (e: NumberFormatException) {
+                } catch (e: NumberFormatException) {
                     it.isEnabled = true
                     Toast.makeText(requireContext(), getString(R.string.invalid_lobby_id), Toast.LENGTH_SHORT).show()
                 }

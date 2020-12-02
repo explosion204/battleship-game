@@ -14,6 +14,7 @@ class Constants {
         const val GAME_STATE_LOADING = "com.explosion204.battleship.GAME_STATE_LOADING"
         const val GAME_STATE_IN_LOBBY = "com.explosion204.battleship.GAME_STATE_IN_LOBBY"
         const val GAME_STATE_IN_PROGRESS = "com.explosion204.battleship.GAME_STATE_IN_PROGRESS"
+        const val GAME_STATE_PAUSED = "com.explosion204.battleship.GAME_STATE_PAUSED"
 
         const val FIRE_REQUEST_PASS = "com.explosion204.battleship.FIRE_REQUEST_PASS"
         const val FIRE_RESPONSE_PASS = "com.explosion204.battleship.FIRE_RESPONSE_PASS"

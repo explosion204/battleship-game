@@ -43,7 +43,8 @@
             android:id="@+id/start_button"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
-            android:text="@string/start" />
+            android:text="@string/start"
+            android:enabled="false" />
 
     </LinearLayout>
 

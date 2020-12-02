@@ -8,11 +8,14 @@
     <fragment
         android:id="@+id/lobbyFragment"
         android:name="com.explosion204.battleship.ui.fragments.LobbyFragment"
-        android:label="LobbyFragment" >
+        android:label="LobbyFragment">
         <action
             android:id="@+id/action_lobbyFragment_to_battleshipFragment"
-            app:destination="@id/battleshipFragment" />
+            app:destination="@id/battleshipFragment"
+            app:popUpTo="@id/game_nav_graph"
+            app:popUpToInclusive="true" />
     </fragment>
+
     <fragment
         android:id="@+id/battleshipFragment"
         android:name="com.explosion204.battleship.ui.fragments.BattleshipFragment"

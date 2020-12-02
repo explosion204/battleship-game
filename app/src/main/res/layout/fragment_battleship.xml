@@ -22,6 +22,7 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <ImageView
+                android:id="@+id/player_pic"
                 android:layout_marginStart="10dp"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
@@ -29,6 +30,7 @@
                 android:background="@drawable/stroked_rounded_corners" />
 
             <TextView
+                android:id="@+id/player_nickname"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_marginStart="5dp"
@@ -87,6 +89,7 @@
                 android:layout_weight="1" />
 
             <TextView
+                android:id="@+id/opponent_nickname"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_marginEnd="5dp"
@@ -94,6 +97,7 @@
                 android:text="Player #1" />
 
             <ImageView
+                android:id="@+id/opponent_pic"
                 android:layout_marginEnd="10dp"
                 android:layout_width="40dp"
                 android:layout_height="40dp"

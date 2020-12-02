@@ -7,7 +7,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.explosion204.battleship.Constants.Companion.ERROR
 import com.explosion204.battleship.Constants.Companion.GAME_STATE_IN_LOBBY
+import com.explosion204.battleship.Constants.Companion.GAME_STATE_IN_PROGRESS
 import com.explosion204.battleship.Constants.Companion.GAME_STATE_LOADING
+import com.explosion204.battleship.Constants.Companion.GAME_STATE_PAUSED
 import com.explosion204.battleship.Constants.Companion.GUEST_DISCONNECTED
 import com.explosion204.battleship.Constants.Companion.HOST_DISCONNECTED
 import com.explosion204.battleship.GameController
@@ -207,9 +209,9 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
         }
     }
 
-    // TODO: change gameStatus to GAME_STATUS_IN_PROGRESS
     fun setGameRunning(status: Boolean) {
-        if (sessionId.value != null && isHost && hostReady.value!! && guestReady.value!!) {
+        if (sessionId.value != null && hostReady.value!! && guestReady.value!!) {
+            gameController.gameState = if (status) GAME_STATE_IN_PROGRESS else GAME_STATE_PAUSED
             sessionRepository.updateSessionValue(sessionId.value!!, "gameRunning", status)
         }
     }
@@ -230,24 +232,33 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
         gameController.matrix.postValue(MatrixGenerator.generate(10, 10))
     }
 
-    fun leaveLobby() {
-        if (isHost) {
-            sessionRepository.updateSessionValue(sessionId.value!!, "hostId", HOST_DISCONNECTED)
-            sessionRepository.deleteSession(sessionId.value!!)
-        }
-        else {
-            sessionRepository.updateSessionValue(sessionId.value!!, "guestId", GUEST_DISCONNECTED)
-            sessionRepository.updateSessionValue(sessionId.value!!, "guestReady", false)
-        }
-    }
+//    fun leaveLobby() {
+//        if (isHost) {
+//            sessionRepository.updateSessionValue(sessionId.value!!, "hostId", HOST_DISCONNECTED)
+//            sessionRepository.detachValueEventListener(sessionId.value!!, valueListener!!)
+//            sessionRepository.deleteSession(sessionId.value!!)
+//        }
+//        else {
+//            sessionRepository.updateSessionValue(sessionId.value!!, "guestId", GUEST_DISCONNECTED)
+//            sessionRepository.detachValueEventListener(sessionId.value!!, valueListener!!)
+//            sessionRepository.updateSessionValue(sessionId.value!!, "guestReady", false)
+//        }
+//    }
 
     fun findSession(sessionId: Long, onSuccess: () -> Unit, onFailure: () -> Unit) {
         sessionRepository.findSession(sessionId, { onSuccess() }, onFailure)
     }
 
     override fun onCleared() {
-        if (valueListener != null) {
+        if (isHost) {
+            sessionRepository.updateSessionValue(sessionId.value!!, "hostId", HOST_DISCONNECTED)
             sessionRepository.detachValueEventListener(sessionId.value!!, valueListener!!)
+            sessionRepository.deleteSession(sessionId.value!!)
+        }
+        else {
+            sessionRepository.updateSessionValue(sessionId.value!!, "guestId", GUEST_DISCONNECTED)
+            sessionRepository.detachValueEventListener(sessionId.value!!, valueListener!!)
+            sessionRepository.updateSessionValue(sessionId.value!!, "guestReady", false)
         }
 
         super.onCleared()

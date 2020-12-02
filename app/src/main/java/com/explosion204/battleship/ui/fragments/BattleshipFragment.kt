@@ -4,19 +4,43 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.explosion204.battleship.Constants
 import com.explosion204.battleship.Matrix
 import com.explosion204.battleship.R
 import com.explosion204.battleship.ui.adapters.MatrixAdapter
+import com.explosion204.battleship.viewmodels.GameViewModel
+import com.explosion204.battleship.viewmodels.UserViewModel
+import com.explosion204.battleship.viewmodels.ViewModelFactory
 import dagger.android.support.DaggerFragment
+import javax.inject.Inject
 
 class BattleshipFragment : DaggerFragment() {
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    private val gameViewModel: GameViewModel by activityViewModels {
+        viewModelFactory
+    }
+    private val userViewModel: UserViewModel by activityViewModels {
+        viewModelFactory
+    }
+
     private lateinit var playerMatrixView: RecyclerView
     private lateinit var opponentMatrixView: RecyclerView
-    private val playerMatrix = Matrix(10, 10)
-    private val opponentMatrix = Matrix(10, 10)
+    private lateinit var playerMatrixAdapter: MatrixAdapter
+    private lateinit var opponentMatrixAdapter: MatrixAdapter
+    private lateinit var playerNickname: TextView
+    private lateinit var opponentNickname: TextView
+    private lateinit var playerPic: ImageView
+    private lateinit var opponentPic: ImageView
+
+    private var isHost = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -29,14 +53,26 @@ class BattleshipFragment : DaggerFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         playerMatrixView = view.findViewById(R.id.player_matrix)
         opponentMatrixView = view.findViewById(R.id.opponent_matrix)
+        playerNickname = view.findViewById(R.id.player_nickname)
+        opponentNickname = view.findViewById(R.id.opponent_nickname)
+        playerPic = view.findViewById(R.id.player_pic)
+        opponentPic = view.findViewById(R.id.opponent_pic)
 
-        playerMatrixView.layoutManager = GridLayoutManager(requireContext(), playerMatrix.rowCapacity())
-        playerMatrixView.adapter = MatrixAdapter(requireContext(), playerMatrix)
+        val playerMatrix = gameViewModel.gameController.matrix
+        val opponentMatrix = Matrix(10, 10)
+
+        playerMatrixView.layoutManager = GridLayoutManager(requireContext(), playerMatrix.value!!.rowCapacity())
+        playerMatrixAdapter = MatrixAdapter(requireContext(), playerMatrix.value!!)
+        playerMatrixView.adapter = playerMatrixAdapter
 
         opponentMatrixView.layoutManager = GridLayoutManager(requireContext(), opponentMatrix.rowCapacity())
-        opponentMatrixView.adapter = MatrixAdapter(requireContext(), opponentMatrix)
+        opponentMatrixAdapter = MatrixAdapter(requireContext(), opponentMatrix)
+        opponentMatrixView.adapter = opponentMatrixAdapter
+
+        isHost = requireActivity().intent.getBooleanExtra(Constants.IS_HOST_EXTRA, false)
 
         setLayoutParams()
+        setObservables()
     }
 
     private fun setLayoutParams() {
@@ -56,5 +92,73 @@ class BattleshipFragment : DaggerFragment() {
 
     private fun convertToPixels(dp: Int): Int {
         return dp * resources.displayMetrics.densityDpi / 160
+    }
+
+    private fun setObservables() {
+        gameViewModel.hostId.observe(viewLifecycleOwner, Observer { userId ->
+            if (userId.isNotEmpty()) {
+                when (userId) {
+                    Constants.HOST_DISCONNECTED -> {
+                        requireActivity().finish()
+                    }
+                    else -> {
+                        userViewModel.getUser(userId).observe(viewLifecycleOwner, Observer { user ->
+                            if (isHost) {
+                                playerNickname.text = user.nickname
+                            }
+                            else {
+                                opponentNickname.text = user.nickname
+                            }
+                        })
+                    }
+                }
+            }
+        })
+
+        gameViewModel.guestId.observe(viewLifecycleOwner, Observer { userId ->
+            if (userId != null && userId.isNotEmpty()) {
+                when (userId) {
+                    Constants.GUEST_DISCONNECTED -> {
+                        requireActivity().finish()
+                    }
+                    else -> {
+                        userViewModel.getUser(userId).observe(viewLifecycleOwner, Observer { user ->
+                            if (!isHost) {
+                                playerNickname.text = user.nickname
+                            }
+                            else {
+                                opponentNickname.text = user.nickname
+                            }
+                        })
+                    }
+                }
+            }
+        })
+
+        gameViewModel.hostBitmap.observe(viewLifecycleOwner, Observer {
+            if (isHost) {
+                playerPic.setImageBitmap(it)
+            }
+            else {
+                opponentPic.setImageBitmap(it)
+            }
+        })
+
+        gameViewModel.guestBitmap.observe(viewLifecycleOwner, Observer {
+            if (!isHost) {
+                playerPic.setImageBitmap(it)
+            }
+            else {
+                opponentPic.setImageBitmap(it)
+            }
+        })
+
+        gameViewModel.gameController.matrix.observe(viewLifecycleOwner, Observer {
+            playerMatrixAdapter.setMatrix(it)
+        })
+
+        gameViewModel.gameController.opponentMatrix.observe(viewLifecycleOwner, Observer {
+            opponentMatrixAdapter.setMatrix(it)
+        })
     }
 }

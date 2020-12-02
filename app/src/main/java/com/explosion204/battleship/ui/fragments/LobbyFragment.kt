@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.navigation.Navigation
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.explosion204.battleship.Constants.Companion.GUEST_DISCONNECTED
@@ -53,6 +54,7 @@ class LobbyFragment : DaggerFragment() {
     private lateinit var guestReady: ImageView
     private lateinit var readyButton: Button
     private lateinit var randomizeButton: Button
+    private lateinit var startButton: Button
 
     private var isHost = false
 
@@ -83,6 +85,7 @@ class LobbyFragment : DaggerFragment() {
         guestReady = view.findViewById(R.id.guest_ready)
         readyButton = view.findViewById(R.id.ready_button)
         randomizeButton = view.findViewById(R.id.randomize_button)
+        startButton = view.findViewById(R.id.start_button)
 
         isHost = requireActivity().intent.getBooleanExtra(IS_HOST_EXTRA, false)
 
@@ -115,6 +118,10 @@ class LobbyFragment : DaggerFragment() {
 
         randomizeButton.setOnClickListener {
             gameViewModel.generateMatrix()
+        }
+
+        startButton.setOnClickListener {
+            gameViewModel.setGameRunning(true)
         }
     }
 
@@ -170,6 +177,8 @@ class LobbyFragment : DaggerFragment() {
             hostReady.setColorFilter(ContextCompat.getColor(requireContext(),
                 if (it) R.color.colorPrimary else android.R.color.darker_gray
             ))
+
+            startButton.isEnabled = it && gameViewModel.guestReady.value!!
         })
 
         gameViewModel.guestReady.observe(viewLifecycleOwner, Observer {
@@ -180,6 +189,8 @@ class LobbyFragment : DaggerFragment() {
             guestReady.setColorFilter(ContextCompat.getColor(requireContext(),
                 if (it) R.color.colorPrimary else android.R.color.darker_gray
             ))
+
+            startButton.isEnabled = it && gameViewModel.hostReady.value!!
         })
 
         gameViewModel.gameController.matrix.observe(viewLifecycleOwner, Observer {
@@ -187,12 +198,9 @@ class LobbyFragment : DaggerFragment() {
         })
 
         gameViewModel.gameRunning.observe(viewLifecycleOwner, Observer {
-            //TODO: Implement
+            if (it) {
+                Navigation.findNavController(requireView()).navigate(R.id.action_lobbyFragment_to_battleshipFragment)
+            }
         })
-    }
-
-    override fun onDestroy() {
-        gameViewModel.leaveLobby()
-        super.onDestroy()
     }
 }

@@ -52,11 +52,17 @@ class JoinGameDialogFragment : DaggerDialogFragment() {
                         lobbyId.text.toString().toLong(),
                         mAuth.currentUser!!.uid,
                         { // success callback
-                            val intent = Intent(requireContext(), GameActivity::class.java)
-                            intent.putExtra(IS_HOST_EXTRA, false)
-                            intent.putExtra(SESSION_ID_EXTRA, lobbyId.text.toString().toLong())
-                            startActivity(intent)
-                            dismiss()
+                            if (gameViewModel.guestId.value != null) {
+                                val intent = Intent(requireContext(), GameActivity::class.java)
+                                intent.putExtra(IS_HOST_EXTRA, false)
+                                intent.putExtra(SESSION_ID_EXTRA, lobbyId.text.toString().toLong())
+                                startActivity(intent)
+                                dismiss()
+                            }
+                            else {
+                                it.isEnabled = true
+                                Toast.makeText(requireContext(), getString(R.string.lobby_is_full), Toast.LENGTH_SHORT).show()
+                            }
                         },
                         { // failure callback
                             it.isEnabled = true

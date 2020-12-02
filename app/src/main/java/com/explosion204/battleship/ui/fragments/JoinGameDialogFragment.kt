@@ -16,7 +16,9 @@ import com.explosion204.battleship.R
 import com.explosion204.battleship.ui.activities.GameActivity
 import com.explosion204.battleship.viewmodels.GameViewModel
 import com.explosion204.battleship.viewmodels.ViewModelFactory
+import com.google.firebase.auth.FirebaseAuth
 import dagger.android.support.DaggerDialogFragment
+import java.lang.NumberFormatException
 import javax.inject.Inject
 
 class JoinGameDialogFragment : DaggerDialogFragment() {
@@ -26,7 +28,9 @@ class JoinGameDialogFragment : DaggerDialogFragment() {
         viewModelFactory
     }
 
+
     private lateinit var lobbyId: AppCompatEditText
+    private val mAuth = FirebaseAuth.getInstance()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -41,20 +45,30 @@ class JoinGameDialogFragment : DaggerDialogFragment() {
 
         view.findViewById<Button>(R.id.connect_button).setOnClickListener {
             it.isEnabled = false
-            gameViewModel.findSession(
-                lobbyId.text.toString().toLong(),
-                { // success callback
-                    val intent = Intent(requireContext(), GameActivity::class.java)
-                    intent.putExtra(IS_HOST_EXTRA, false)
-                    intent.putExtra(SESSION_ID_EXTRA, lobbyId.text.toString().toLong())
-                    startActivity(intent)
-                    dismiss()
-                },
-                { // failure callback
+
+            if (mAuth.currentUser != null) {
+                try {
+                    gameViewModel.fetchSession(
+                        lobbyId.text.toString().toLong(),
+                        mAuth.currentUser!!.uid,
+                        { // success callback
+                            val intent = Intent(requireContext(), GameActivity::class.java)
+                            intent.putExtra(IS_HOST_EXTRA, false)
+                            intent.putExtra(SESSION_ID_EXTRA, lobbyId.text.toString().toLong())
+                            startActivity(intent)
+                            dismiss()
+                        },
+                        { // failure callback
+                            it.isEnabled = true
+                            Toast.makeText(requireContext(), getString(R.string.invalid_lobby_id), Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                }
+                catch (e: NumberFormatException) {
                     it.isEnabled = true
                     Toast.makeText(requireContext(), getString(R.string.invalid_lobby_id), Toast.LENGTH_SHORT).show()
                 }
-            )
+            }
         }
     }
 

@@ -40,9 +40,13 @@ class LoadingLobbyFragment : DaggerFragment() {
                 }
             }
             else {
-                gameViewModel.fetchSession(requireActivity().intent.getLongExtra(Constants.SESSION_ID_EXTRA, 0), mAuth.currentUser!!.uid) {
+                gameViewModel.fetchSession(requireActivity().intent.getLongExtra(Constants.SESSION_ID_EXTRA, 0), mAuth.currentUser!!.uid,
+                { // success
                     Navigation.findNavController(requireView()).navigate(R.id.action_loadingLobbyFragment_to_lobbyFragment)
-                }
+                }, // failure
+                {
+                    requireActivity().finish()
+                })
             }
         }
     }

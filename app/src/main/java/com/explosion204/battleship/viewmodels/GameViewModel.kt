@@ -74,7 +74,7 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
     }
 
     // Fetch data from existing session if user is guest
-    fun fetchSession(sessionId: Long, userId: String, onComplete: () -> Unit) {
+    fun fetchSession(sessionId: Long, userId: String, onComplete: () -> Unit, onFailure: () -> Unit) {
         sessionRepository.findSession(sessionId,
         { ref ->
             isHost = false
@@ -87,7 +87,7 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
             }
         },
         {
-            //TODO: Implement failure callback
+            onFailure()
         })
     }
 
@@ -232,23 +232,6 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
 
     fun generateMatrix() {
         gameController.matrix.postValue(MatrixGenerator.generate(10, 10))
-    }
-
-//    fun leaveLobby() {
-//        if (isHost) {
-//            sessionRepository.updateSessionValue(sessionId.value!!, "hostId", HOST_DISCONNECTED)
-//            sessionRepository.detachValueEventListener(sessionId.value!!, valueListener!!)
-//            sessionRepository.deleteSession(sessionId.value!!)
-//        }
-//        else {
-//            sessionRepository.updateSessionValue(sessionId.value!!, "guestId", GUEST_DISCONNECTED)
-//            sessionRepository.detachValueEventListener(sessionId.value!!, valueListener!!)
-//            sessionRepository.updateSessionValue(sessionId.value!!, "guestReady", false)
-//        }
-//    }
-
-    fun findSession(sessionId: Long, onSuccess: () -> Unit, onFailure: () -> Unit) {
-        sessionRepository.findSession(sessionId, { onSuccess() }, onFailure)
     }
 
     override fun onCleared() {

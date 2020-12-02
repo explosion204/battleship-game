@@ -10,6 +10,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -31,7 +32,7 @@ import javax.inject.Inject
 
 class LobbyFragment : DaggerFragment() {
     private lateinit var matrixView: RecyclerView
-    private val matrix = Matrix(10, 10)
+    private lateinit var matrixAdapter: MatrixAdapter
 
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
@@ -51,6 +52,7 @@ class LobbyFragment : DaggerFragment() {
     private lateinit var hostReady: ImageView
     private lateinit var guestReady: ImageView
     private lateinit var readyButton: Button
+    private lateinit var randomizeButton: Button
 
     private var isHost = false
 
@@ -64,9 +66,13 @@ class LobbyFragment : DaggerFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         matrixView = view.findViewById(R.id.matrix)
-        matrixView.layoutManager = GridLayoutManager(requireContext(), matrix.rowCapacity())
-        matrixView.adapter = MatrixAdapter(requireContext(), matrix)
+        val initialMatrix = Matrix(10, 10)
+        matrixView.layoutManager = GridLayoutManager(requireContext(), initialMatrix.rowCapacity())
+        matrixAdapter = MatrixAdapter(requireContext(), initialMatrix)
+        matrixView.adapter = matrixAdapter
         setLayoutParams()
+
+        gameViewModel.generateMatrix()
 
         lobbyId = view.findViewById(R.id.lobby_id)
         hostPlayerPic = view.findViewById(R.id.host_player_pic)
@@ -76,6 +82,7 @@ class LobbyFragment : DaggerFragment() {
         hostReady = view.findViewById(R.id.host_ready)
         guestReady = view.findViewById(R.id.guest_ready)
         readyButton = view.findViewById(R.id.ready_button)
+        randomizeButton = view.findViewById(R.id.randomize_button)
 
         isHost = requireActivity().intent.getBooleanExtra(IS_HOST_EXTRA, false)
 
@@ -104,6 +111,10 @@ class LobbyFragment : DaggerFragment() {
     private fun setListeners() {
         readyButton.setOnClickListener {
             gameViewModel.changeReady()
+        }
+
+        randomizeButton.setOnClickListener {
+            gameViewModel.generateMatrix()
         }
     }
 
@@ -171,6 +182,10 @@ class LobbyFragment : DaggerFragment() {
             ))
         })
 
+        gameViewModel.gameController.matrix.observe(viewLifecycleOwner, Observer {
+            matrixAdapter.setMatrix(it)
+        })
+
         gameViewModel.gameRunning.observe(viewLifecycleOwner, Observer {
             //TODO: Implement
         })
@@ -178,7 +193,6 @@ class LobbyFragment : DaggerFragment() {
 
     override fun onDestroy() {
         gameViewModel.leaveLobby()
-
         super.onDestroy()
     }
 }

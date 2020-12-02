@@ -6,7 +6,7 @@ class MatrixGenerator {
         private const val DIRECTION_DOWN = 2
         private const val DIRECTION_LEFT = 3
 
-        fun generate(targetMatrix: Array<BooleanArray>, rowsCount: Int, rowCapacity: Int) {
+        fun generate(rowsCount: Int, rowCapacity: Int): Matrix {
             while (true) {
                 val newMatrix = Array(rowsCount) { BooleanArray(rowCapacity) { false } }
                 var result = true
@@ -23,6 +23,7 @@ class MatrixGenerator {
                 result = placeShip(newMatrix, rowsCount, rowCapacity, 1, 4)
                 if (!result) continue
 
+                return Matrix(rowsCount, rowCapacity, newMatrix)
             }
         }
 

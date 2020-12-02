@@ -73,4 +73,8 @@ class SessionRepository @Inject constructor(private val firebaseDatabase: Fireba
 
         })
     }
+
+    fun detachValueEventListener(sessionId: Long, listener: ValueEventListener) {
+        dbSessions.child(sessionId.toString()).removeEventListener(listener)
+    }
 }

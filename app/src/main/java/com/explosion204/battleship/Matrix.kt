@@ -2,14 +2,14 @@ package com.explosion204.battleship
 
 import java.lang.IndexOutOfBoundsException
 
-class Matrix(private val rowsCount: Int, private val rowCapacity: Int) {
-    private val innerMatrix = Array(rowsCount) { BooleanArray(rowCapacity) { false } }
-
-    fun generate() {
-        MatrixGenerator.generate(innerMatrix, rowsCount, rowCapacity)
-    }
+class Matrix(rowsCount: Int, rowCapacity: Int) {
+    private var innerMatrix = Array(rowsCount) { BooleanArray(rowCapacity) { false } }
 
     operator fun get(i: Int, j: Int) = innerMatrix[i][j]
+
+    constructor(rowsCount: Int, rowCapacity: Int, array: Array<BooleanArray>) : this(rowsCount, rowCapacity) {
+        innerMatrix = array
+    }
 
     fun rowsCount(): Int {
         return innerMatrix.size

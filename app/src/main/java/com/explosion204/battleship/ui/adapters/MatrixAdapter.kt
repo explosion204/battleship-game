@@ -12,9 +12,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.explosion204.battleship.Matrix
 import com.explosion204.battleship.R
 
-class MatrixAdapter(private val context: Context, private val matrix: Matrix) : RecyclerView.Adapter<MatrixAdapter.CellViewHolder>() {
+class MatrixAdapter(private val context: Context, private var matrix: Matrix) : RecyclerView.Adapter<MatrixAdapter.CellViewHolder>() {
     private val inflater = LayoutInflater.from(context)
 
+    fun setMatrix(matrix: Matrix) {
+        this.matrix = matrix
+        notifyDataSetChanged()
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CellViewHolder {
         val view = inflater.inflate(R.layout.cell_item, parent, false)
@@ -36,7 +40,10 @@ class MatrixAdapter(private val context: Context, private val matrix: Matrix) : 
         val i = position % matrix.rowCapacity()
         val j = position / matrix.rowsCount()
 
-        if (!matrix[i, j]) {
+        if (matrix[i, j]) {
+            holder.cellImageView.setImageResource(R.drawable.black_square)
+        }
+        else {
             holder.cellImageView.setImageResource(R.drawable.square)
         }
     }

@@ -5,12 +5,13 @@ import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.explosion204.battleship.Constants.Companion.ERROR
 import com.explosion204.battleship.Constants.Companion.GAME_STATE_IN_LOBBY
 import com.explosion204.battleship.Constants.Companion.GAME_STATE_LOADING
 import com.explosion204.battleship.Constants.Companion.GUEST_DISCONNECTED
 import com.explosion204.battleship.Constants.Companion.HOST_DISCONNECTED
+import com.explosion204.battleship.GameController
+import com.explosion204.battleship.MatrixGenerator
 import com.explosion204.battleship.data.models.Session
 import com.explosion204.battleship.data.repos.SessionRepository
 import com.explosion204.battleship.data.repos.UserRepository
@@ -21,13 +22,11 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.lang.Exception
 import javax.inject.Inject
 
 class GameViewModel @Inject constructor(private val sessionRepository: SessionRepository, private val userRepository: UserRepository) : ViewModel() {
-    private var gameState = GAME_STATE_LOADING
+    val gameController = GameController()
 
     var sessionId = MutableLiveData<Long?>(null)
     var hostId = MutableLiveData("")
@@ -36,36 +35,36 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
     var guestReady = MutableLiveData(false)
     var gameRunning = MutableLiveData(false)
     var hostTurn = MutableLiveData(false)
-    var fireRequest = MutableLiveData("")
-    var fireResponse = MutableLiveData("")
-    var hostShips = MutableLiveData(0)
-    var guestShips = MutableLiveData(0)
-
     var hostBitmap = MutableLiveData<Bitmap>()
     var guestBitmap = MutableLiveData<Bitmap>()
 
     var lockRequestUpdates = false
     var lockResponseUpdates = false
 
+    private var fireRequest = ""
+    private var fireResponse = ""
+    private var hostShips = 0
+    private var guestShips = 0
     private var isHost = true
-
     private var picassoTargetHost: Target? = null
     private var picassoTargetGuest: Target? = null
 
     private var hostProfileImageLoaded = false
     private var guestProfileImageLoaded = false
+    private var valueListener: ValueEventListener? = null
 
 
     // TODO: Delete session after the game finished
     // TODO: Second guest cannot connect to full lobby
+    // TODO: Cannot connect to lobby with the same uid as host
     // Initialize new session if user is host (!!!onComplete callback executed only in GAME_STATE_LOADING!!!)
     fun initNewSession(userId: String, onComplete: () -> Unit) {
         sessionRepository.initNewSession(userId) {
-            initMutableData(it) {
+            initLiveData(it) {
                 if (hostProfileImageLoaded) {
-                    if (gameState == GAME_STATE_LOADING) {
+                    if (gameController.gameState == GAME_STATE_LOADING) {
                         onComplete()
-                        gameState = GAME_STATE_IN_LOBBY
+                        gameController.gameState = GAME_STATE_IN_LOBBY
                     }
                 }
             }
@@ -78,7 +77,7 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
         { ref ->
             isHost = false
             ref.child("guestId").setValue(userId).addOnSuccessListener {
-                initMutableData(ref) {
+                initLiveData(ref) {
                     if (guestProfileImageLoaded && hostProfileImageLoaded) {
                         onComplete()
                     }
@@ -91,8 +90,8 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
     }
 
     // Subscribe lifecycle-aware fields of View Model to database changes
-    private fun initMutableData(ref: DatabaseReference, onComplete: () -> Unit) {
-        ref.addValueEventListener(object : ValueEventListener {
+    private fun initLiveData(ref: DatabaseReference, onComplete: () -> Unit) {
+       valueListener = ref.addValueEventListener(object : ValueEventListener {
             override fun onCancelled(error: DatabaseError) {
                 Log.e(ERROR, error.toString())
             }
@@ -145,20 +144,20 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
                         hostTurn.postValue(session.hostTurn)
                     }
 
-                    if (fireRequest.value != session.fireRequest && !lockRequestUpdates) {
-                        fireRequest.postValue(session.fireRequest)
+                    if (fireRequest != session.fireRequest && !lockRequestUpdates) {
+                        // TODO: process request
                     }
 
-                    if (fireResponse.value != session.fireResponse && !lockResponseUpdates) {
-                        fireResponse.postValue(session.fireResponse)
+                    if (fireResponse != session.fireResponse && !lockResponseUpdates) {
+                        // TODO: process response
                     }
 
-                    if (hostShips.value != session.hostShips) {
-                        hostShips.postValue(session.hostShips)
+                    if (hostShips != session.hostShips) {
+                        hostShips = session.hostShips
                     }
 
-                    if (guestShips.value != session.guestShips) {
-                        guestShips.postValue(session.guestShips)
+                    if (guestShips != session.guestShips) {
+                        guestShips = session.guestShips
                     }
                 }
             }
@@ -215,9 +214,9 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
         }
     }
 
-    fun sendFireRequest(i: Int, j: Int) {
+    fun sendFireRequest(request: String) {
         if (sessionId.value != null) {
-            sessionRepository.updateSessionValue(sessionId.value!!, "fireRequest", "$i-$j")
+            sessionRepository.updateSessionValue(sessionId.value!!, "fireRequest", request)
         }
     }
 
@@ -225,6 +224,10 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
         if (sessionId.value != null) {
             sessionRepository.updateSessionValue(sessionId.value!!, "gameRunning", !hostTurn.value!!)
         }
+    }
+
+    fun generateMatrix() {
+        gameController.matrix.postValue(MatrixGenerator.generate(10, 10))
     }
 
     fun leaveLobby() {
@@ -240,5 +243,13 @@ class GameViewModel @Inject constructor(private val sessionRepository: SessionRe
 
     fun findSession(sessionId: Long, onSuccess: () -> Unit, onFailure: () -> Unit) {
         sessionRepository.findSession(sessionId, { onSuccess() }, onFailure)
+    }
+
+    override fun onCleared() {
+        if (valueListener != null) {
+            sessionRepository.detachValueEventListener(sessionId.value!!, valueListener!!)
+        }
+
+        super.onCleared()
     }
 }

@@ -17,6 +17,8 @@ class Constants {
 
         const val FIRE_REQUEST_PASS = "com.explosion204.battleship.FIRE_REQUEST_PASS"
         const val FIRE_RESPONSE_PASS = "com.explosion204.battleship.FIRE_RESPONSE_PASS"
+        const val FIRE_HIT = "com.explosion204.battleship.FIRE_HIT"
+        const val FIRE_MISS = "com.explosion204.battleship.FIRE_MISS"
         const val HOST_DISCONNECTED = "com.explosion204.battleship.HOST_DISCONNECTED"
         const val GUEST_DISCONNECTED = "com.explosion204.battleship.GUEST_DISCONNECTED"
     }

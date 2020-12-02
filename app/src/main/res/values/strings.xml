@@ -18,4 +18,5 @@
     <string name="lobby_id">Lobby ID</string>
     <string name="connect">Connect</string>
     <string name="empty_slot">Empty slot</string>
+    <string name="invalid_lobby_id">Invalid lobby ID</string>
 </resources>

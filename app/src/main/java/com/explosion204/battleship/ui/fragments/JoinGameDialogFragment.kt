@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.Toast
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.fragment.app.activityViewModels
 import com.explosion204.battleship.Constants.Companion.IS_HOST_EXTRA
@@ -39,6 +40,7 @@ class JoinGameDialogFragment : DaggerDialogFragment() {
         lobbyId = view.findViewById(R.id.lobby_id)
 
         view.findViewById<Button>(R.id.connect_button).setOnClickListener {
+            it.isEnabled = false
             gameViewModel.findSession(
                 lobbyId.text.toString().toLong(),
                 { // success callback
@@ -46,9 +48,11 @@ class JoinGameDialogFragment : DaggerDialogFragment() {
                     intent.putExtra(IS_HOST_EXTRA, false)
                     intent.putExtra(SESSION_ID_EXTRA, lobbyId.text.toString().toLong())
                     startActivity(intent)
+                    dismiss()
                 },
                 { // failure callback
-
+                    it.isEnabled = true
+                    Toast.makeText(requireContext(), getString(R.string.invalid_lobby_id), Toast.LENGTH_SHORT).show()
                 }
             )
         }

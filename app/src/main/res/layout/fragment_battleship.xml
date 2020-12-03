@@ -37,6 +37,14 @@
                 android:gravity="center_vertical"
                 android:text="Player #1" />
 
+            <TextView
+                android:id="@+id/player_status"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginStart="5dp"
+                android:gravity="center_vertical"
+                android:text="@string/firing" />
+
             <View
                 android:layout_width="0dp"
                 android:layout_height="0dp"
@@ -87,6 +95,14 @@
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/opponent_status"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginStart="5dp"
+                android:gravity="center_vertical"
+                android:text="@string/firing" />
 
             <TextView
                 android:id="@+id/opponent_nickname"

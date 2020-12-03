@@ -12,9 +12,11 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.explosion204.battleship.Constants
+import com.explosion204.battleship.GameController
 import com.explosion204.battleship.Matrix
 import com.explosion204.battleship.R
 import com.explosion204.battleship.ui.adapters.MatrixAdapter
+import com.explosion204.battleship.ui.interfaces.OnItemClickListener
 import com.explosion204.battleship.viewmodels.GameViewModel
 import com.explosion204.battleship.viewmodels.UserViewModel
 import com.explosion204.battleship.viewmodels.ViewModelFactory
@@ -39,6 +41,8 @@ class BattleshipFragment : DaggerFragment() {
     private lateinit var opponentNickname: TextView
     private lateinit var playerPic: ImageView
     private lateinit var opponentPic: ImageView
+    private lateinit var playerStatus: TextView
+    private lateinit var opponentStatus: TextView
 
     private var isHost = false
 
@@ -57,21 +61,26 @@ class BattleshipFragment : DaggerFragment() {
         opponentNickname = view.findViewById(R.id.opponent_nickname)
         playerPic = view.findViewById(R.id.player_pic)
         opponentPic = view.findViewById(R.id.opponent_pic)
+        playerStatus = view.findViewById(R.id.player_status)
+        opponentStatus = view.findViewById(R.id.opponent_status)
 
-        val playerMatrix = gameViewModel.gameController.matrix
-        val opponentMatrix = Matrix(10, 10)
+        val playerMatrix = gameViewModel.gameController.matrix.value!!
+        val opponentMatrix = gameViewModel.gameController.opponentMatrix.value!!
 
-        playerMatrixView.layoutManager = GridLayoutManager(requireContext(), playerMatrix.value!!.rowCapacity())
-        playerMatrixAdapter = MatrixAdapter(requireContext(), playerMatrix.value!!)
+        playerMatrixView.layoutManager =
+            GridLayoutManager(requireContext(), playerMatrix.rowCapacity())
+        playerMatrixAdapter = MatrixAdapter(requireContext(), playerMatrix)
         playerMatrixView.adapter = playerMatrixAdapter
 
-        opponentMatrixView.layoutManager = GridLayoutManager(requireContext(), opponentMatrix.rowCapacity())
+        opponentMatrixView.layoutManager =
+            GridLayoutManager(requireContext(), opponentMatrix.rowCapacity())
         opponentMatrixAdapter = MatrixAdapter(requireContext(), opponentMatrix)
         opponentMatrixView.adapter = opponentMatrixAdapter
 
         isHost = requireActivity().intent.getBooleanExtra(Constants.IS_HOST_EXTRA, false)
 
         setLayoutParams()
+        setListeners()
         setObservables()
     }
 
@@ -79,7 +88,8 @@ class BattleshipFragment : DaggerFragment() {
         val metrics = resources.displayMetrics
 
         val playerMatrixLayout = requireView().findViewById<LinearLayout>(R.id.player_matrix_layout)
-        val opponentMatrixLayout = requireView().findViewById<LinearLayout>(R.id.opponent_matrix_layout)
+        val opponentMatrixLayout =
+            requireView().findViewById<LinearLayout>(R.id.opponent_matrix_layout)
 
         playerMatrixLayout.layoutParams.width = metrics.widthPixels / 2
         opponentMatrixLayout.layoutParams.width = metrics.widthPixels / 2
@@ -94,6 +104,14 @@ class BattleshipFragment : DaggerFragment() {
         return dp * resources.displayMetrics.densityDpi / 160
     }
 
+    private fun setListeners() {
+        opponentMatrixAdapter.setOnItemClickListener(object : OnItemClickListener {
+            override fun onItemClick(item: Any) {
+                gameViewModel.sendFireRequest(item.toString())
+            }
+        })
+    }
+
     private fun setObservables() {
         gameViewModel.hostId.observe(viewLifecycleOwner, Observer { userId ->
             if (userId.isNotEmpty()) {
@@ -105,8 +123,7 @@ class BattleshipFragment : DaggerFragment() {
                         userViewModel.getUser(userId).observe(viewLifecycleOwner, Observer { user ->
                             if (isHost) {
                                 playerNickname.text = user.nickname
-                            }
-                            else {
+                            } else {
                                 opponentNickname.text = user.nickname
                             }
                         })
@@ -125,8 +142,7 @@ class BattleshipFragment : DaggerFragment() {
                         userViewModel.getUser(userId).observe(viewLifecycleOwner, Observer { user ->
                             if (!isHost) {
                                 playerNickname.text = user.nickname
-                            }
-                            else {
+                            } else {
                                 opponentNickname.text = user.nickname
                             }
                         })
@@ -138,8 +154,7 @@ class BattleshipFragment : DaggerFragment() {
         gameViewModel.hostBitmap.observe(viewLifecycleOwner, Observer {
             if (isHost) {
                 playerPic.setImageBitmap(it)
-            }
-            else {
+            } else {
                 opponentPic.setImageBitmap(it)
             }
         })
@@ -147,9 +162,28 @@ class BattleshipFragment : DaggerFragment() {
         gameViewModel.guestBitmap.observe(viewLifecycleOwner, Observer {
             if (!isHost) {
                 playerPic.setImageBitmap(it)
-            }
-            else {
+            } else {
                 opponentPic.setImageBitmap(it)
+            }
+        })
+
+        gameViewModel.hostTurn.observe(viewLifecycleOwner, Observer {
+            if (isHost) {
+                if (it) {
+                    playerStatus.text = getString(R.string.firing)
+                    opponentStatus.text = ""
+                } else {
+                    playerStatus.text = ""
+                    opponentStatus.text = getString(R.string.firing)
+                }
+            } else {
+                if (it) {
+                    playerStatus.text = ""
+                    opponentStatus.text = getString(R.string.firing)
+                } else {
+                    playerStatus.text = getString(R.string.firing)
+                    opponentStatus.text = ""
+                }
             }
         })
 

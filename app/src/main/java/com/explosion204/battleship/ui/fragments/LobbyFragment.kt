@@ -19,6 +19,7 @@ import com.explosion204.battleship.Constants.Companion.GUEST_DISCONNECTED
 import com.explosion204.battleship.Constants.Companion.HOST_DISCONNECTED
 import com.explosion204.battleship.Constants.Companion.IS_HOST_EXTRA
 import com.explosion204.battleship.Constants.Companion.SESSION_ID_EXTRA
+import com.explosion204.battleship.GameController
 import com.explosion204.battleship.Matrix
 import com.explosion204.battleship.R
 import com.explosion204.battleship.ui.adapters.MatrixAdapter
@@ -74,7 +75,7 @@ class LobbyFragment : DaggerFragment() {
         matrixView.adapter = matrixAdapter
         setLayoutParams()
 
-        gameViewModel.generateMatrix()
+        gameViewModel.gameController.generateMatrix()
 
         lobbyId = view.findViewById(R.id.lobby_id)
         hostPlayerPic = view.findViewById(R.id.host_player_pic)
@@ -117,7 +118,7 @@ class LobbyFragment : DaggerFragment() {
         }
 
         randomizeButton.setOnClickListener {
-            gameViewModel.generateMatrix()
+            gameViewModel.gameController.generateMatrix()
         }
 
         startButton.setOnClickListener {
@@ -171,24 +172,32 @@ class LobbyFragment : DaggerFragment() {
 
         gameViewModel.hostReady.observe(viewLifecycleOwner, Observer {
             if (isHost) {
-                readyButton.text = if (it) getString(R.string.not_ready) else getString(R.string.ready)
+                readyButton.text =
+                    if (it) getString(R.string.not_ready) else getString(R.string.ready)
             }
 
-            hostReady.setColorFilter(ContextCompat.getColor(requireContext(),
-                if (it) R.color.colorPrimary else android.R.color.darker_gray
-            ))
+            hostReady.setColorFilter(
+                ContextCompat.getColor(
+                    requireContext(),
+                    if (it) R.color.colorPrimary else android.R.color.darker_gray
+                )
+            )
 
             startButton.isEnabled = it && gameViewModel.guestReady.value!!
         })
 
         gameViewModel.guestReady.observe(viewLifecycleOwner, Observer {
             if (!isHost) {
-                readyButton.text = if (it) getString(R.string.not_ready) else getString(R.string.ready)
+                readyButton.text =
+                    if (it) getString(R.string.not_ready) else getString(R.string.ready)
             }
 
-            guestReady.setColorFilter(ContextCompat.getColor(requireContext(),
-                if (it) R.color.colorPrimary else android.R.color.darker_gray
-            ))
+            guestReady.setColorFilter(
+                ContextCompat.getColor(
+                    requireContext(),
+                    if (it) R.color.colorPrimary else android.R.color.darker_gray
+                )
+            )
 
             startButton.isEnabled = it && gameViewModel.hostReady.value!!
         })
@@ -199,7 +208,8 @@ class LobbyFragment : DaggerFragment() {
 
         gameViewModel.gameRunning.observe(viewLifecycleOwner, Observer {
             if (it) {
-                Navigation.findNavController(requireView()).navigate(R.id.action_lobbyFragment_to_battleshipFragment)
+                Navigation.findNavController(requireView())
+                    .navigate(R.id.action_lobbyFragment_to_battleshipFragment)
             }
         })
     }

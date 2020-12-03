@@ -17,33 +17,35 @@ class SessionRepository @Inject constructor(private val firebaseDatabase: Fireba
     private val dbSessions = firebaseDatabase.getReference(SESSIONS_DB)
 
     fun initNewSession(hostId: String, onComplete: (ref: DatabaseReference) -> Unit) {
-        dbSessions.child("sessionsCount").addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onCancelled(error: DatabaseError) {}
+        dbSessions.child("sessionsCount")
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onCancelled(error: DatabaseError) {}
 
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val newSession = Session(
-                    id = snapshot.value as Long + 1,
-                    hostId = hostId,
-                    guestId = null,
-                    hostReady = false,
-                    guestReady = false,
-                    gameRunning = false,
-                    hostTurn = (0..1).random() == 1,
-                    fireRequest = FIRE_REQUEST_PASS,
-                    fireResponse = FIRE_RESPONSE_PASS,
-                    hostShips = 10,
-                    guestShips = 10)
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val newSession = Session(
+                        id = snapshot.value as Long + 1,
+                        hostId = hostId,
+                        guestId = null,
+                        hostReady = false,
+                        guestReady = false,
+                        gameRunning = false,
+                        hostTurn = (0..1).random() == 1,
+                        fireRequest = FIRE_REQUEST_PASS,
+                        fireResponse = "0-0-$FIRE_RESPONSE_PASS",
+                        hostShips = 10,
+                        guestShips = 10
+                    )
 
-                dbSessions.child("sessionsCount").setValue(newSession.id!!.toLong())
+                    dbSessions.child("sessionsCount").setValue(newSession.id!!.toLong())
 
-                dbSessions.child(newSession.id!!.toString())
-                    .setValue(newSession)
-                    .addOnSuccessListener {
-                        onComplete(dbSessions.child(newSession.id!!.toString()))
-                    }
+                    dbSessions.child(newSession.id!!.toString())
+                        .setValue(newSession)
+                        .addOnSuccessListener {
+                            onComplete(dbSessions.child(newSession.id!!.toString()))
+                        }
 
-            }
-        })
+                }
+            })
     }
 
     fun updateSessionValue(sessionId: Long, field: String, value: Any) {
@@ -55,14 +57,15 @@ class SessionRepository @Inject constructor(private val firebaseDatabase: Fireba
     }
 
     fun deleteSession(hostId: String) {
-        dbSessions.ref.orderByChild("hostId").equalTo(hostId).addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onCancelled(error: DatabaseError) {}
+        dbSessions.ref.orderByChild("hostId").equalTo(hostId)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onCancelled(error: DatabaseError) {}
 
-            override fun onDataChange(snapshot: DataSnapshot) {
-                snapshot.ref.removeValue()
-            }
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    snapshot.ref.removeValue()
+                }
 
-        })
+            })
     }
 
     // find session by its id
@@ -71,19 +74,19 @@ class SessionRepository @Inject constructor(private val firebaseDatabase: Fireba
         onSuccess: (ref: DatabaseReference) -> Unit,
         onFailure: () -> Unit
     ) {
-        dbSessions.child(sessionId.toString()).addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onCancelled(error: DatabaseError) {}
+        dbSessions.child(sessionId.toString())
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onCancelled(error: DatabaseError) {}
 
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.exists()) {
-                    onSuccess(snapshot.ref)
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (snapshot.exists()) {
+                        onSuccess(snapshot.ref)
+                    } else {
+                        onFailure()
+                    }
                 }
-                else {
-                    onFailure()
-                }
-            }
 
-        })
+            })
     }
 
     fun detachValueEventListener(sessionId: Long, listener: ValueEventListener) {

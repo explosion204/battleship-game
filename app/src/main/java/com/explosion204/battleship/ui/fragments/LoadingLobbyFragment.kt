@@ -36,17 +36,22 @@ class LoadingLobbyFragment : DaggerFragment() {
         if (mAuth.currentUser != null) {
             if (requireActivity().intent.getBooleanExtra(Constants.IS_HOST_EXTRA, false)) {
                 gameViewModel.initNewSession(mAuth.currentUser!!.uid) {
-                    Navigation.findNavController(requireView()).navigate(R.id.action_loadingLobbyFragment_to_lobbyFragment)
+                    Navigation.findNavController(requireView())
+                        .navigate(R.id.action_loadingLobbyFragment_to_lobbyFragment)
                 }
-            }
-            else {
-                gameViewModel.fetchSession(requireActivity().intent.getLongExtra(Constants.SESSION_ID_EXTRA, 0), mAuth.currentUser!!.uid,
-                { // success
-                    Navigation.findNavController(requireView()).navigate(R.id.action_loadingLobbyFragment_to_lobbyFragment)
-                }, // failure
-                {
-                    requireActivity().finish()
-                })
+            } else {
+                gameViewModel.fetchSession(requireActivity().intent.getLongExtra(
+                    Constants.SESSION_ID_EXTRA,
+                    0
+                ),
+                    mAuth.currentUser!!.uid,
+                    { // success
+                        Navigation.findNavController(requireView())
+                            .navigate(R.id.action_loadingLobbyFragment_to_lobbyFragment)
+                    }, // failure
+                    {
+                        requireActivity().finish()
+                    })
             }
         }
     }

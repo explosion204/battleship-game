@@ -1,5 +1,8 @@
 package com.explosion204.battleship
 
+import com.explosion204.battleship.Constants.Companion.MATRIX_FREE_CELL
+import com.explosion204.battleship.Constants.Companion.MATRIX_TAKEN_CELL
+
 class MatrixGenerator {
     companion object {
         private const val DIRECTION_RIGHT = 1
@@ -8,7 +11,7 @@ class MatrixGenerator {
 
         fun generate(rowsCount: Int, rowCapacity: Int): Matrix {
             while (true) {
-                val newMatrix = Array(rowsCount) { BooleanArray(rowCapacity) { false } }
+                val newMatrix = Array(rowsCount) { ByteArray(rowCapacity) { MATRIX_FREE_CELL } }
                 var result = true
 
                 result = placeShip(newMatrix, rowsCount, rowCapacity, 4, 1)
@@ -27,7 +30,13 @@ class MatrixGenerator {
             }
         }
 
-        fun placeShip(matrix: Array<BooleanArray>, rowsCount: Int, rowCapacity: Int, size: Int, count: Int): Boolean {
+        fun placeShip(
+            matrix: Array<ByteArray>,
+            rowsCount: Int,
+            rowCapacity: Int,
+            size: Int,
+            count: Int
+        ): Boolean {
             var resultMatrix = deepCopy(matrix, rowsCount, rowCapacity)
 
 
@@ -51,18 +60,17 @@ class MatrixGenerator {
                             try {
                                 val buffer = deepCopy(resultMatrix, rowsCount, rowCapacity)
                                 for (k in 0 until size) {
-                                    buffer[randRow][randPos + k] = true
+                                    buffer[randRow][randPos + k] = MATRIX_TAKEN_CELL
                                 }
                                 resultMatrix = deepCopy(buffer, rowsCount, rowCapacity)
                                 break
-                            } catch (e: Exception) {}
+                            } catch (e: Exception) {
+                            }
                         }
 
                         failuresAllowed--;
                         continue
-                    }
-
-                    else if (randDirection == DIRECTION_DOWN) {
+                    } else if (randDirection == DIRECTION_DOWN) {
                         for (k in 0 until size) {
                             free = checkArea(resultMatrix, randRow + k, randPos)
 
@@ -73,18 +81,17 @@ class MatrixGenerator {
                             try {
                                 val buffer = deepCopy(resultMatrix, rowsCount, rowCapacity)
                                 for (k in 0 until size) {
-                                    buffer[randRow + k][randPos] = true
+                                    buffer[randRow + k][randPos] = MATRIX_TAKEN_CELL
                                 }
                                 resultMatrix = deepCopy(buffer, rowsCount, rowCapacity)
                                 break
-                            } catch(e: Exception) {}
+                            } catch (e: Exception) {
+                            }
                         }
 
                         failuresAllowed--;
                         continue
-                    }
-
-                    else if (randDirection == DIRECTION_LEFT) {
+                    } else if (randDirection == DIRECTION_LEFT) {
                         for (k in 0 until size) {
                             free = checkArea(resultMatrix, randRow, randPos - k)
 
@@ -95,18 +102,17 @@ class MatrixGenerator {
                             try {
                                 val buffer = deepCopy(resultMatrix, rowsCount, rowCapacity)
                                 for (k in 0 until size) {
-                                    buffer[randRow][randPos - k] = true
+                                    buffer[randRow][randPos - k] = MATRIX_TAKEN_CELL
                                 }
                                 resultMatrix = deepCopy(buffer, rowsCount, rowCapacity)
                                 break
-                            } catch(e: Exception) {}
+                            } catch (e: Exception) {
+                            }
                         }
 
                         failuresAllowed--;
                         continue
-                    }
-
-                    else { // DIRECTION_UP
+                    } else { // DIRECTION_UP
                         for (k in 0 until size) {
                             free = checkArea(resultMatrix, randRow - k, randPos)
 
@@ -117,11 +123,12 @@ class MatrixGenerator {
                             try {
                                 val buffer = deepCopy(resultMatrix, rowsCount, rowCapacity)
                                 for (k in 0 until size) {
-                                    buffer[randRow - k][randPos] = true
+                                    buffer[randRow - k][randPos] = MATRIX_TAKEN_CELL
                                 }
                                 resultMatrix = deepCopy(buffer, rowsCount, rowCapacity)
                                 break
-                            } catch(e: Exception) {}
+                            } catch (e: Exception) {
+                            }
                         }
 
                         failuresAllowed--;
@@ -141,57 +148,61 @@ class MatrixGenerator {
             return true;
         }
 
-        private fun checkArea(matrix: Array<BooleanArray>, row: Int, pos: Int): Boolean {
+        private fun checkArea(matrix: Array<ByteArray>, row: Int, pos: Int): Boolean {
             try {
-                if (matrix[row][pos]) return false
+                if (matrix[row][pos] == MATRIX_TAKEN_CELL) return false
+            } catch (e: Exception) {
             }
-            catch (e: Exception) {}
 
             try {
-                if (matrix[row - 1][pos - 1]) return false
+                if (matrix[row - 1][pos - 1] == MATRIX_TAKEN_CELL) return false
+            } catch (e: Exception) {
             }
-            catch (e: Exception) {}
 
             try {
-                if (matrix[row - 1][pos]) return false
+                if (matrix[row - 1][pos] == MATRIX_TAKEN_CELL) return false
+            } catch (e: Exception) {
             }
-            catch (e: Exception) {}
 
             try {
-                if (matrix[row - 1][pos + 1]) return false
+                if (matrix[row - 1][pos + 1] == MATRIX_TAKEN_CELL) return false
+            } catch (e: Exception) {
             }
-            catch (e: Exception) {}
 
             try {
-                if (matrix[row][pos - 1]) return false
+                if (matrix[row][pos - 1] == MATRIX_TAKEN_CELL) return false
+            } catch (e: Exception) {
             }
-            catch (e: Exception) {}
 
             try {
-                if (matrix[row][pos + 1]) return false
+                if (matrix[row][pos + 1] == MATRIX_TAKEN_CELL) return false
+            } catch (e: Exception) {
             }
-            catch (e: Exception) {}
 
             try {
-                if (matrix[row + 1][pos - 1]) return false
+                if (matrix[row + 1][pos - 1] == MATRIX_TAKEN_CELL) return false
+            } catch (e: Exception) {
             }
-            catch (e: Exception) {}
 
             try {
-                if (matrix[row + 1][pos]) return false
+                if (matrix[row + 1][pos] == MATRIX_TAKEN_CELL) return false
+            } catch (e: Exception) {
             }
-            catch (e: Exception) {}
 
             try {
-                if (matrix[row + 1][pos + 1]) return false
+                if (matrix[row + 1][pos + 1] == MATRIX_TAKEN_CELL) return false
+            } catch (e: Exception) {
             }
-            catch (e: Exception) {}
 
             return true
         }
 
-        private fun deepCopy(original: Array<BooleanArray>, rowsCount: Int, rowCapacity: Int): Array<BooleanArray> {
-            val copy = Array(rowsCount) { BooleanArray(rowCapacity) { false } }
+        private fun deepCopy(
+            original: Array<ByteArray>,
+            rowsCount: Int,
+            rowCapacity: Int
+        ): Array<ByteArray> {
+            val copy = Array(rowsCount) { ByteArray(rowCapacity) { MATRIX_FREE_CELL } }
 
             for (i in 0 until rowsCount) {
                 for (j in 0 until rowCapacity) {

@@ -15,6 +15,7 @@ import androidx.lifecycle.Observer
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.explosion204.battleship.Constants.Companion.GAME_STATE_IN_PROGRESS
 import com.explosion204.battleship.Constants.Companion.GUEST_DISCONNECTED
 import com.explosion204.battleship.Constants.Companion.HOST_DISCONNECTED
 import com.explosion204.battleship.Constants.Companion.IS_HOST_EXTRA
@@ -208,6 +209,7 @@ class LobbyFragment : DaggerFragment() {
 
         gameViewModel.gameRunning.observe(viewLifecycleOwner, Observer {
             if (it) {
+                gameViewModel.gameController.gameState = GAME_STATE_IN_PROGRESS
                 Navigation.findNavController(requireView())
                     .navigate(R.id.action_lobbyFragment_to_battleshipFragment)
             }

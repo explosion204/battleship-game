@@ -65,7 +65,6 @@ class GameViewModel @Inject constructor(
     // TODO: Delete session after the game finished
     // TODO: Second guest cannot connect to lobby (implemented, not tested)
     // TODO: Cannot connect to lobby with the same uid as host (implemented, not tested)
-    // TODO: Check the following: session might be destroyed on guest force disconnect
     // Initialize new session if user is host (!!!onComplete callback executed only in GAME_STATE_LOADING!!!)
     fun initNewSession(userId: String, onComplete: () -> Unit) {
         sessionRepository.initNewSession(userId) {
@@ -94,6 +93,7 @@ class GameViewModel @Inject constructor(
                     initLiveData(ref) {
                         if (guestProfileImageLoaded && hostProfileImageLoaded) {
                             onComplete()
+                            gameController.gameState = GAME_STATE_IN_LOBBY
                         }
                     }
                 }
@@ -193,7 +193,12 @@ class GameViewModel @Inject constructor(
 
         })
 
-        ref.onDisconnect().removeValue()
+        // prevent session from clean up after guest leaved lobby
+        if (isHost) {
+            ref.onDisconnect().removeValue()
+        } else {
+            ref.child("guestId").onDisconnect().setValue(GUEST_DISCONNECTED)
+        }
     }
 
     private fun fetchHostProfileImageBitmap(hostId: String, onComplete: () -> Unit) {
@@ -278,7 +283,7 @@ class GameViewModel @Inject constructor(
         }
     }
 
-    override fun onCleared() {
+    private fun leaveLobby() {
         if (isHost) {
             sessionRepository.updateSessionValue(sessionId.value!!, "hostId", HOST_DISCONNECTED)
             sessionRepository.detachValueEventListener(sessionId.value!!, valueListener!!)
@@ -288,7 +293,10 @@ class GameViewModel @Inject constructor(
             sessionRepository.detachValueEventListener(sessionId.value!!, valueListener!!)
             sessionRepository.updateSessionValue(sessionId.value!!, "guestReady", false)
         }
+    }
 
+    override fun onCleared() {
+        leaveLobby()
         super.onCleared()
     }
 }

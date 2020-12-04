@@ -21,4 +21,7 @@
     <string name="invalid_lobby_id">Invalid lobby ID</string>
     <string name="lobby_is_full">Lobby is full</string>
     <string name="firing">(firing)</string>
+    <string name="leave_lobby">Leave lobby?</string>
+    <string name="leave">Leave</string>
+    <string name="cancel">Cancel</string>
 </resources>

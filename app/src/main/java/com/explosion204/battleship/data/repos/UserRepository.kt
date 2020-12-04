@@ -72,7 +72,7 @@ class UserRepository @Inject constructor(
                 fireStore.collection("users")
                     .whereEqualTo("userId", uid)
                     .get()
-                    .addOnSuccessListener {result ->
+                    .addOnSuccessListener { result ->
                         result.documents[0].reference.update("profileImageUri", uri.toString())
                     }
             }

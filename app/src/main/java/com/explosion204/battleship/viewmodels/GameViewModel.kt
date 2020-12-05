@@ -5,6 +5,7 @@ import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.explosion204.battleship.Constants
 import com.explosion204.battleship.Constants.Companion.ERROR
 import com.explosion204.battleship.Constants.Companion.FIRE_REQUEST_PASS
 import com.explosion204.battleship.Constants.Companion.FIRE_RESPONSE_MISS
@@ -16,7 +17,8 @@ import com.explosion204.battleship.Constants.Companion.GAME_STATE_PAUSED
 import com.explosion204.battleship.Constants.Companion.GUEST_DISCONNECTED
 import com.explosion204.battleship.Constants.Companion.HOST_DISCONNECTED
 import com.explosion204.battleship.GameController
-import com.explosion204.battleship.MatrixGenerator
+import com.explosion204.battleship.Matrix
+import com.explosion204.battleship.OnGameEventsListener
 import com.explosion204.battleship.data.models.Session
 import com.explosion204.battleship.data.repos.SessionRepository
 import com.explosion204.battleship.data.repos.UserRepository
@@ -30,15 +32,21 @@ import com.squareup.picasso.Target
 import java.lang.Exception
 import javax.inject.Inject
 
+// User interacts with UI -> view model handles user actions and updates DB ->
+// view model observes DB changes and sends them to GameController to be processed ->
+// GameController notifies view model about its internal changes -> view model updates ui
 class GameViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val userRepository: UserRepository
 ) : ViewModel() {
-    val gameController = GameController()
+    private var gameController: GameController? = null
 
+    var gameState = GAME_STATE_LOADING
     var sessionId = MutableLiveData<Long?>(null)
     var hostId = MutableLiveData("")
     var guestId = MutableLiveData("")
+    var playerMatrix = MutableLiveData(Matrix(10, 10))
+    var opponentMatrix = MutableLiveData(Matrix(10, 10))
     var hostReady = MutableLiveData(false)
     var guestReady = MutableLiveData(false)
     var gameRunning = MutableLiveData(false)
@@ -46,14 +54,6 @@ class GameViewModel @Inject constructor(
     var hostBitmap = MutableLiveData<Bitmap>()
     var guestBitmap = MutableLiveData<Bitmap>()
 
-    private var lockRequestUpdates = false
-    private var lockResponseUpdates = true
-
-    private var fireRequest = FIRE_REQUEST_PASS
-    private var fireResponse = "0-0-$FIRE_RESPONSE_PASS"
-    private var hostShips = 0
-    private var guestShips = 0
-    private var isHost = true
     private var picassoTargetHost: Target? = null
     private var picassoTargetGuest: Target? = null
 
@@ -61,18 +61,90 @@ class GameViewModel @Inject constructor(
     private var guestProfileImageLoaded = false
     private var valueListener: ValueEventListener? = null
 
+    private fun setListeners() {
+        gameController?.setOnGameEventsListener(object : OnGameEventsListener {
+            override fun onHostReadyChanged(newValue: Boolean) {
+                hostReady.postValue(newValue)
+            }
 
-    // TODO: Delete session after the game finished
+            override fun onGuestReadyChanged(newValue: Boolean) {
+                guestReady.postValue(newValue)
+            }
+
+            override fun onGameRunningChanged(newValue: Boolean) {
+                gameRunning.postValue(newValue)
+                gameState = if (newValue) {
+                    GAME_STATE_IN_PROGRESS
+                } else {
+                    GAME_STATE_PAUSED
+                }
+            }
+
+            override fun onHostTurnChanged(newValue: Boolean) {
+                hostTurn.postValue(newValue)
+            }
+
+            override fun onPlayerMatrixChanged(newValue: Matrix) {
+                playerMatrix.postValue(newValue)
+            }
+
+            override fun onOpponentMatrixChanged(newValue: Matrix) {
+                opponentMatrix.postValue(newValue)
+            }
+
+            override fun onFireRequestProcessed(i: Int, j: Int, response: String) {
+                if (sessionId.value != null) {
+                    sessionRepository.updateSessionValue(
+                        sessionId.value!!,
+                        "fireResponse",
+                        "$i-$j-$response"
+                    )
+                }
+            }
+
+            override fun onFireResponseProcessed(
+                i: Int,
+                j: Int,
+                response: String,
+                hostTurn: Boolean
+            ) {
+                when (response) {
+                    FIRE_RESPONSE_MISS -> {
+                        sessionRepository.updateSessionValue(
+                            sessionId.value!!,
+                            "fireRequest",
+                            FIRE_REQUEST_PASS
+                        )
+                        sessionRepository.updateSessionValue(
+                            sessionId.value!!,
+                            "fireResponse",
+                            FIRE_RESPONSE_PASS
+                        )
+                        sessionRepository.updateSessionValue(
+                            sessionId.value!!,
+                            "hostTurn",
+                            !hostTurn
+                        )
+                    }
+                }
+            }
+        })
+    }
+
+    // TODO: Delete session after the game finished]
+    // TODO: Broken session clean up
     // TODO: Second guest cannot connect to lobby (implemented, not tested)
     // TODO: Cannot connect to lobby with the same uid as host (implemented, not tested)
     // Initialize new session if user is host (!!!onComplete callback executed only in GAME_STATE_LOADING!!!)
     fun initNewSession(userId: String, onComplete: () -> Unit) {
+        gameController = GameController(isHost = true)
+        setListeners()
         sessionRepository.initNewSession(userId) {
-            initLiveData(it) {
+            initLiveData(it, true) {
                 if (hostProfileImageLoaded) {
-                    if (gameController.gameState == GAME_STATE_LOADING) {
+                    if (gameState == GAME_STATE_LOADING) {
                         onComplete()
-                        gameController.gameState = GAME_STATE_IN_LOBBY
+                        gameState = GAME_STATE_IN_LOBBY
                     }
                 }
             }
@@ -86,14 +158,15 @@ class GameViewModel @Inject constructor(
         onComplete: () -> Unit,
         onFailure: () -> Unit
     ) {
+        gameController = GameController(isHost = false)
+        setListeners()
         sessionRepository.findSession(sessionId,
             { ref ->
-                isHost = false
                 ref.child("guestId").setValue(userId).addOnSuccessListener {
-                    initLiveData(ref) {
+                    initLiveData(ref, false) {
                         if (guestProfileImageLoaded && hostProfileImageLoaded) {
                             onComplete()
-                            gameController.gameState = GAME_STATE_IN_LOBBY
+                            gameState = GAME_STATE_IN_LOBBY
                         }
                     }
                 }
@@ -103,8 +176,8 @@ class GameViewModel @Inject constructor(
             })
     }
 
-    // Subscribe lifecycle-aware fields of View Model to database changes
-    private fun initLiveData(ref: DatabaseReference, onComplete: () -> Unit) {
+    // Subscribe lifecycle-aware fields of view model to database changes
+    private fun initLiveData(ref: DatabaseReference, isHost: Boolean, onComplete: () -> Unit) {
         valueListener = ref.addValueEventListener(object : ValueEventListener {
             override fun onCancelled(error: DatabaseError) {
                 Log.e(ERROR, error.toString())
@@ -142,51 +215,35 @@ class GameViewModel @Inject constructor(
                         }
                     }
 
-                    if (hostReady.value != session.hostReady) {
-                        hostReady.postValue(session.hostReady)
+                    if (gameController?.hostReady != session.hostReady) {
+                        gameController?.hostReady = session.hostReady
                     }
 
-                    if (guestReady.value != session.guestReady) {
-                        guestReady.postValue(session.guestReady)
+                    if (gameController?.guestReady != session.guestReady) {
+                        gameController?.guestReady = session.guestReady
                     }
 
-                    if (gameRunning.value != session.gameRunning) {
-                        gameRunning.postValue(session.gameRunning)
+                    if (gameController?.gameRunning != session.gameRunning) {
+                        gameController?.gameRunning = session.gameRunning
                     }
 
-                    hostTurn.postValue(session.hostTurn)
+                    gameController?.setHostTurn(session.hostTurn)
 
-                    if (isHost) { // hostTurn = true
-                        lockRequestUpdates = hostTurn.value!! // false
-                        lockResponseUpdates = !hostTurn.value!! // true
-                    } else { // hostTurn = true
-                        lockRequestUpdates = !hostTurn.value!! // true
-                        lockResponseUpdates = hostTurn.value!! // false
+                    if (session.fireRequest != FIRE_REQUEST_PASS) {
+                        val requestTokens = session.fireRequest.split('-')
+                        gameController?.processFireRequest(
+                            requestTokens[0].toInt(),
+                            requestTokens[1].toInt()
+                        )
                     }
 
-                    if (fireRequest != session.fireRequest && !lockRequestUpdates) {
-                        fireRequest = session.fireRequest
-                        val response = gameController.processFireRequest(session.fireRequest)
-                        sendFireResponse(response)
-                    }
-
-                    if (fireResponse != session.fireResponse && !lockResponseUpdates) {
-                        fireResponse = session.fireResponse
-                        gameController.processFireResponse(session.fireResponse,
-                            { // on hit
-
-                            },
-                            { // on miss
-                                nextTurn()
-                            })
-                    }
-
-                    if (hostShips != session.hostShips) {
-                        hostShips = session.hostShips
-                    }
-
-                    if (guestShips != session.guestShips) {
-                        guestShips = session.guestShips
+                    if (session.fireResponse != FIRE_RESPONSE_PASS) {
+                        val responseTokens = session.fireResponse.split('-')
+                        gameController?.processFireResponse(
+                            responseTokens[0].toInt(),
+                            responseTokens[1].toInt(),
+                            responseTokens[2]
+                        )
                     }
                 }
             }
@@ -194,7 +251,7 @@ class GameViewModel @Inject constructor(
         })
 
         // prevent session from clean up after guest leaved lobby
-        if (isHost) {
+        if (gameController!!.isHost) {
             ref.onDisconnect().removeValue()
         } else {
             ref.child("guestId").onDisconnect().setValue(GUEST_DISCONNECTED)
@@ -237,61 +294,47 @@ class GameViewModel @Inject constructor(
         }
     }
 
+    fun generateMatrix() {
+        if (gameController != null) {
+            gameController!!.generateMatrix()
+        }
+    }
+
     fun changeReady() {
-        if (sessionId.value != null) {
-            sessionRepository.updateSessionValue(
-                sessionId.value!!,
-                if (isHost) "hostReady" else "guestReady",
-                if (isHost) !hostReady.value!! else !guestReady.value!!
-            )
-        }
-    }
-
-    fun setGameRunning(status: Boolean) {
-        if (sessionId.value != null && hostReady.value!! && guestReady.value!!) {
-            gameController.gameState = if (status) GAME_STATE_IN_PROGRESS else GAME_STATE_PAUSED
-            sessionRepository.updateSessionValue(sessionId.value!!, "gameRunning", status)
-        }
-    }
-
-    fun sendFireRequest(request: String) {
-        if (sessionId.value != null) {
-            if ((isHost && hostTurn.value!!) || (!isHost && !hostTurn.value!!)) {
-                sessionRepository.updateSessionValue(sessionId.value!!, "fireRequest", request)
+        if (gameController != null) {
+            if (sessionId.value != null) {
+                sessionRepository.updateSessionValue(
+                    sessionId.value!!,
+                    if (gameController!!.isHost) "hostReady" else "guestReady",
+                    if (gameController!!.isHost) !hostReady.value!! else !guestReady.value!!
+                )
             }
         }
     }
 
-    private fun sendFireResponse(response: String) {
+    fun setGameRunning(status: Boolean) {
         if (sessionId.value != null) {
-            sessionRepository.updateSessionValue(sessionId.value!!, "fireResponse", response)
+            sessionRepository.updateSessionValue(sessionId.value!!, "gameRunning", status)
         }
     }
 
-    private fun nextTurn() {
+    fun postFireRequest(i: Int, j: Int) {
         if (sessionId.value != null) {
-            sessionRepository.updateSessionValue(
-                sessionId.value!!,
-                "fireRequest",
-                FIRE_REQUEST_PASS
-            )
-            sessionRepository.updateSessionValue(
-                sessionId.value!!,
-                "hostTurn",
-                !hostTurn.value!!
-            )
+            sessionRepository.updateSessionValue(sessionId.value!!, "fireRequest", "$i-$j")
         }
     }
 
     private fun leaveLobby() {
-        if (isHost) {
-            sessionRepository.updateSessionValue(sessionId.value!!, "hostId", HOST_DISCONNECTED)
-            sessionRepository.detachValueEventListener(sessionId.value!!, valueListener!!)
-            sessionRepository.deleteSession(sessionId.value!!)
-        } else {
-            sessionRepository.updateSessionValue(sessionId.value!!, "guestId", GUEST_DISCONNECTED)
-            sessionRepository.detachValueEventListener(sessionId.value!!, valueListener!!)
-            sessionRepository.updateSessionValue(sessionId.value!!, "guestReady", false)
+        if (gameController != null) {
+            if (gameController!!.isHost) {
+                sessionRepository.updateSessionValue(sessionId.value!!, "hostId", HOST_DISCONNECTED)
+                sessionRepository.detachValueEventListener(sessionId.value!!, valueListener!!)
+                sessionRepository.deleteSession(sessionId.value!!)
+            } else {
+                sessionRepository.updateSessionValue(sessionId.value!!, "guestId", GUEST_DISCONNECTED)
+                sessionRepository.detachValueEventListener(sessionId.value!!, valueListener!!)
+                sessionRepository.updateSessionValue(sessionId.value!!, "guestReady", false)
+            }
         }
     }
 

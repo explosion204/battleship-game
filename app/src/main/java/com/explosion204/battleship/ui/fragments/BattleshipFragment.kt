@@ -12,8 +12,6 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.explosion204.battleship.Constants
-import com.explosion204.battleship.GameController
-import com.explosion204.battleship.Matrix
 import com.explosion204.battleship.R
 import com.explosion204.battleship.ui.adapters.MatrixAdapter
 import com.explosion204.battleship.ui.interfaces.OnItemClickListener
@@ -64,8 +62,8 @@ class BattleshipFragment : DaggerFragment() {
         playerStatus = view.findViewById(R.id.player_status)
         opponentStatus = view.findViewById(R.id.opponent_status)
 
-        val playerMatrix = gameViewModel.gameController.matrix.value!!
-        val opponentMatrix = gameViewModel.gameController.opponentMatrix.value!!
+        val playerMatrix = gameViewModel.playerMatrix.value!!
+        val opponentMatrix = gameViewModel.opponentMatrix.value!!
 
         playerMatrixView.layoutManager =
             GridLayoutManager(requireContext(), playerMatrix.rowCapacity())
@@ -106,8 +104,8 @@ class BattleshipFragment : DaggerFragment() {
 
     private fun setListeners() {
         opponentMatrixAdapter.setOnItemClickListener(object : OnItemClickListener {
-            override fun onItemClick(item: Any) {
-                gameViewModel.sendFireRequest(item.toString())
+            override fun onItemClick(i: Int, j: Int) {
+                gameViewModel.postFireRequest(i, j)
             }
         })
     }
@@ -187,11 +185,11 @@ class BattleshipFragment : DaggerFragment() {
             }
         })
 
-        gameViewModel.gameController.matrix.observe(viewLifecycleOwner, Observer {
+        gameViewModel.playerMatrix.observe(viewLifecycleOwner, Observer {
             playerMatrixAdapter.setMatrix(it)
         })
 
-        gameViewModel.gameController.opponentMatrix.observe(viewLifecycleOwner, Observer {
+        gameViewModel.opponentMatrix.observe(viewLifecycleOwner, Observer {
             opponentMatrixAdapter.setMatrix(it)
         })
     }

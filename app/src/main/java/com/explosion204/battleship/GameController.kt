@@ -5,67 +5,120 @@ import com.explosion204.battleship.Constants.Companion.FIRE_REQUEST_PASS
 import com.explosion204.battleship.Constants.Companion.FIRE_RESPONSE_HIT
 import com.explosion204.battleship.Constants.Companion.FIRE_RESPONSE_MISS
 import com.explosion204.battleship.Constants.Companion.FIRE_RESPONSE_PASS
+import com.explosion204.battleship.Constants.Companion.GAME_STATE_IN_PROGRESS
+import com.explosion204.battleship.Constants.Companion.GAME_STATE_PAUSED
 import com.explosion204.battleship.Constants.Companion.MATRIX_FREE_CELL
 import com.explosion204.battleship.Constants.Companion.MATRIX_HIT_CELL
 import com.explosion204.battleship.Constants.Companion.MATRIX_MISSED_CELL
 import com.explosion204.battleship.Constants.Companion.MATRIX_TAKEN_CELL
 
-class GameController {
-    var gameState = Constants.GAME_STATE_LOADING
+class GameController(val isHost: Boolean) {
+    private var onGameEventsListener: OnGameEventsListener? = null
 
-    private var innerMatrix = Matrix(10, 10)
-    private var innerOpponentMatrix = Matrix(10, 10)
+    private var playerMatrix = Matrix(10, 10)
+    private var opponentMatrix = Matrix(10, 10)
 
-    val matrix = MutableLiveData(innerMatrix)
-    val opponentMatrix = MutableLiveData(innerOpponentMatrix)
+    var hostReady = false
+        set(value) {
+            field = value
+            onGameEventsListener?.onHostReadyChanged(value)
+        }
 
+    var guestReady = false
+        set(value) {
+            field = value
+            onGameEventsListener?.onGuestReadyChanged(value)
+        }
 
-    fun processFireRequest(fireRequest: String): String { // i-j
-        if (fireRequest != FIRE_REQUEST_PASS) {
-            val tokens = fireRequest.split('-')
-            val i = tokens[0].toInt()
-            val j = tokens[1].toInt()
-
-            return when (matrix.value!![i, j]) {
-                MATRIX_FREE_CELL -> {
-                    innerMatrix[i, j] = MATRIX_MISSED_CELL
-                    matrix.postValue(innerMatrix)
-                    "$i-$j-$FIRE_RESPONSE_MISS"
-                }
-                MATRIX_TAKEN_CELL -> {
-                    innerMatrix[i, j] = MATRIX_HIT_CELL
-                    matrix.postValue(innerMatrix)
-                    "$i-$j-$FIRE_RESPONSE_HIT"
-                }
-                else -> "0-0-$FIRE_RESPONSE_PASS"
+    var gameRunning = false
+        set(value) {
+            if (hostReady && guestReady) {
+                field = value
+                onGameEventsListener?.onGameRunningChanged(value)
             }
-        } else {
-            return "0-0-$FIRE_RESPONSE_PASS"
+        }
+    private var hostTurn = true
+    private var lockRequestProcessing = false
+    private var lockResponseProcessing = true
+
+    fun setOnGameEventsListener(listener: OnGameEventsListener) {
+        onGameEventsListener = listener
+    }
+
+//    fun setHostReady(value: Boolean) {
+//        hostReady = value
+//        onGameEventsListener?.onHostReadyChanged(value)
+//    }
+
+//    fun setGuestReady(value: Boolean) {
+//        guestReady = value
+//        onGameEventsListener?.onGuestReadyChanged(value)
+//    }
+
+//    fun setGameRunning(value: Boolean) {
+//        if (hostReady && guestReady) {
+//            gameRunning = value
+//            onGameEventsListener?.onGameRunningChanged(value)
+//        }
+//    }
+
+    fun setHostTurn(value: Boolean) {
+        if (hostTurn != value) {
+            hostTurn = value
+
+            if (isHost) {
+                lockRequestProcessing = hostTurn
+                lockResponseProcessing = !hostTurn
+            } else {
+                lockRequestProcessing = !hostTurn
+                lockResponseProcessing = hostTurn
+            }
+
+            onGameEventsListener?.onHostTurnChanged(value)
         }
     }
 
-    fun processFireResponse(fireResponse: String, onHit: () -> Unit, onMiss: () -> Unit) {
-        val tokens = fireResponse.split('-')
-        val i = tokens[0].toInt()
-        val j = tokens[1].toInt()
-        when (tokens[2]) {
-            FIRE_RESPONSE_HIT -> {
-                innerOpponentMatrix[i, j] = MATRIX_HIT_CELL
-                opponentMatrix.postValue(innerOpponentMatrix)
-                onHit()
+    fun processFireRequest(i: Int, j: Int) {
+        if (!lockRequestProcessing) {
+            when (playerMatrix[i, j]) {
+                MATRIX_FREE_CELL -> {
+                    playerMatrix[i, j] = MATRIX_MISSED_CELL
+                    onGameEventsListener?.onPlayerMatrixChanged(playerMatrix)
+                    onGameEventsListener?.onFireRequestProcessed(i, j, FIRE_RESPONSE_MISS)
+                }
+                MATRIX_TAKEN_CELL -> {
+                    playerMatrix[i, j] = MATRIX_HIT_CELL
+                    onGameEventsListener?.onPlayerMatrixChanged(playerMatrix)
+                    onGameEventsListener?.onFireRequestProcessed(i, j, FIRE_RESPONSE_HIT)
+                }
             }
-            FIRE_RESPONSE_MISS -> {
-                innerOpponentMatrix[i, j] = MATRIX_MISSED_CELL
-                opponentMatrix.postValue(innerOpponentMatrix)
-                onMiss()
-            }
-            else -> {
+        }
+    }
+
+    fun processFireResponse(i: Int, j: Int, fireResponse: String) {
+        if (!lockResponseProcessing) {
+            when (fireResponse) {
+                FIRE_RESPONSE_HIT -> {
+                    opponentMatrix[i, j] = MATRIX_HIT_CELL
+                    onGameEventsListener?.onOpponentMatrixChanged(opponentMatrix)
+                    onGameEventsListener?.onFireResponseProcessed(i, j, FIRE_RESPONSE_HIT, hostTurn)
+                }
+                FIRE_RESPONSE_MISS -> {
+                    opponentMatrix[i, j] = MATRIX_MISSED_CELL
+                    onGameEventsListener?.onOpponentMatrixChanged(opponentMatrix)
+                    onGameEventsListener?.onFireResponseProcessed(
+                        i,
+                        j,
+                        FIRE_RESPONSE_MISS,
+                        hostTurn
+                    )
+                }
             }
         }
     }
 
     fun generateMatrix() {
-        innerMatrix = MatrixGenerator.generate(10, 10)
-        matrix.postValue(innerMatrix)
+        playerMatrix = MatrixGenerator.generate(10, 10)
+        onGameEventsListener?.onPlayerMatrixChanged(playerMatrix)
     }
 }

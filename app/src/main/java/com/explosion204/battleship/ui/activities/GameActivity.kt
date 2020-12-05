@@ -24,7 +24,7 @@ class GameActivity : DaggerAppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        when (gameViewModel.gameController.gameState) {
+        when (gameViewModel.gameState) {
             GAME_STATE_IN_LOBBY -> {
                 AlertDialog.Builder(this)
                     .setMessage(getString(R.string.leave_lobby))

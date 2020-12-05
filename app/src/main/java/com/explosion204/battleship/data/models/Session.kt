@@ -12,7 +12,7 @@ data class Session(
     var gameRunning: Boolean = false,
     var hostTurn: Boolean = false,
     var fireRequest: String = FIRE_REQUEST_PASS,
-    var fireResponse: String = "0-0-$FIRE_RESPONSE_PASS",
+    var fireResponse: String = FIRE_RESPONSE_PASS,
     var hostShips: Int = 10,
     var guestShips: Int = 10
 )

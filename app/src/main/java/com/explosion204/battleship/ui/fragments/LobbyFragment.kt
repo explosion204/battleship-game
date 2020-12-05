@@ -10,7 +10,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.GridLayoutManager
@@ -19,17 +18,12 @@ import com.explosion204.battleship.Constants.Companion.GAME_STATE_IN_PROGRESS
 import com.explosion204.battleship.Constants.Companion.GUEST_DISCONNECTED
 import com.explosion204.battleship.Constants.Companion.HOST_DISCONNECTED
 import com.explosion204.battleship.Constants.Companion.IS_HOST_EXTRA
-import com.explosion204.battleship.Constants.Companion.SESSION_ID_EXTRA
-import com.explosion204.battleship.GameController
 import com.explosion204.battleship.Matrix
 import com.explosion204.battleship.R
 import com.explosion204.battleship.ui.adapters.MatrixAdapter
-import com.explosion204.battleship.ui.util.CircleTransform
 import com.explosion204.battleship.viewmodels.GameViewModel
 import com.explosion204.battleship.viewmodels.UserViewModel
 import com.explosion204.battleship.viewmodels.ViewModelFactory
-import com.google.firebase.auth.FirebaseAuth
-import com.squareup.picasso.Picasso
 import dagger.android.support.DaggerFragment
 import javax.inject.Inject
 
@@ -76,7 +70,7 @@ class LobbyFragment : DaggerFragment() {
         matrixView.adapter = matrixAdapter
         setLayoutParams()
 
-        gameViewModel.gameController.generateMatrix()
+        gameViewModel.generateMatrix()
 
         lobbyId = view.findViewById(R.id.lobby_id)
         hostPlayerPic = view.findViewById(R.id.host_player_pic)
@@ -119,7 +113,7 @@ class LobbyFragment : DaggerFragment() {
         }
 
         randomizeButton.setOnClickListener {
-            gameViewModel.gameController.generateMatrix()
+            gameViewModel.generateMatrix()
         }
 
         startButton.setOnClickListener {
@@ -203,13 +197,12 @@ class LobbyFragment : DaggerFragment() {
             startButton.isEnabled = it && gameViewModel.hostReady.value!!
         })
 
-        gameViewModel.gameController.matrix.observe(viewLifecycleOwner, Observer {
+        gameViewModel.playerMatrix.observe(viewLifecycleOwner, Observer {
             matrixAdapter.setMatrix(it)
         })
 
         gameViewModel.gameRunning.observe(viewLifecycleOwner, Observer {
             if (it) {
-                gameViewModel.gameController.gameState = GAME_STATE_IN_PROGRESS
                 Navigation.findNavController(requireView())
                     .navigate(R.id.action_lobbyFragment_to_battleshipFragment)
             }

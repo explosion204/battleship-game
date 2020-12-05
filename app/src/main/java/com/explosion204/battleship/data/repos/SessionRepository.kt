@@ -25,15 +25,7 @@ class SessionRepository @Inject constructor(private val firebaseDatabase: Fireba
                     val newSession = Session(
                         id = snapshot.value as Long + 1,
                         hostId = hostId,
-                        guestId = null,
-                        hostReady = false,
-                        guestReady = false,
-                        gameRunning = false,
-                        hostTurn = (0..1).random() == 1,
-                        fireRequest = FIRE_REQUEST_PASS,
-                        fireResponse = "0-0-$FIRE_RESPONSE_PASS",
-                        hostShips = 10,
-                        guestShips = 10
+                        hostTurn = (0..1).random() == 1
                     )
 
                     dbSessions.child("sessionsCount").setValue(newSession.id!!.toLong())

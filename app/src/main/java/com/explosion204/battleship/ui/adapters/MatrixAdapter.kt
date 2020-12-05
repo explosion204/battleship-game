@@ -55,7 +55,7 @@ class MatrixAdapter(private val context: Context, private var matrix: Matrix) :
                 holder.cellImageView.setImageResource(R.drawable.square)
                 holder.itemView.setOnClickListener {
                     if (itemClickListener != null && clickAllowed) {
-                        itemClickListener!!.onItemClick("$i-$j")
+                        itemClickListener!!.onItemClick(i, j)
                         clickAllowed = false
                     }
                 }

@@ -7,11 +7,14 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.explosion204.battleship.Constants
+import com.explosion204.battleship.Constants.Companion.GAME_STATE_IN_PROGRESS
+import com.explosion204.battleship.Constants.Companion.GAME_STATE_PAUSED
 import com.explosion204.battleship.R
 import com.explosion204.battleship.ui.adapters.MatrixAdapter
 import com.explosion204.battleship.ui.interfaces.OnItemClickListener
@@ -191,6 +194,31 @@ class BattleshipFragment : DaggerFragment() {
 
         gameViewModel.opponentMatrix.observe(viewLifecycleOwner, Observer {
             opponentMatrixAdapter.setMatrix(it)
+        })
+
+        val pauseDialogBuilder = AlertDialog.Builder(requireContext())
+            .setMessage("Game paused")
+            .setPositiveButton("Resume") { _, _ ->
+                gameViewModel.setGameRunning(true)
+            }
+            .setNegativeButton("Leave") { dialog, _ ->
+                dialog.dismiss()
+                requireActivity().finish()
+            }
+            .setCancelable(false)
+
+        var pauseDialog: AlertDialog? = null
+
+        gameViewModel.gameRunning.observe(viewLifecycleOwner, Observer {
+            when (gameViewModel.gameState) {
+                GAME_STATE_IN_PROGRESS -> {
+                    pauseDialog?.dismiss()
+                    pauseDialog = null
+                }
+                GAME_STATE_PAUSED -> {
+                    pauseDialog = pauseDialogBuilder.show()
+                }
+            }
         })
     }
 }

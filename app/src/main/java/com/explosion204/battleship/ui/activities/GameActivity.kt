@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import com.explosion204.battleship.Constants.Companion.GAME_STATE_IN_LOBBY
+import com.explosion204.battleship.Constants.Companion.GAME_STATE_IN_PROGRESS
+import com.explosion204.battleship.Constants.Companion.GAME_STATE_PAUSED
 import com.explosion204.battleship.R
 import com.explosion204.battleship.viewmodels.GameViewModel
 import com.explosion204.battleship.viewmodels.ViewModelFactory
@@ -34,6 +36,9 @@ class GameActivity : DaggerAppCompatActivity() {
                     .setNegativeButton(R.string.cancel) { _, _ -> }
                     .setCancelable(false)
                     .show()
+            }
+            GAME_STATE_IN_PROGRESS -> {
+                gameViewModel.setGameRunning(false)
             }
         }
     }

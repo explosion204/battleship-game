@@ -16,16 +16,18 @@ class UserViewModel @Inject constructor(private val userRepository: UserReposito
 
     //private lateinit var user: MutableLiveData<User>
 
-    fun getUser(id: String): LiveData<User>  {
+    fun getUser(id: String): LiveData<User> {
         val user = MutableLiveData<User>()
         viewModelScope.launch(Dispatchers.IO) {
             userRepository.getUser(id).addSnapshotListener { value, _ ->
                 if (value != null) {
-                    user.postValue(User(
-                        value["userId"].toString(),
-                        value["nickname"].toString(),
-                        value["profileImageUri"].toString()
-                    ))
+                    user.postValue(
+                        User(
+                            value["userId"].toString(),
+                            value["nickname"].toString(),
+                            value["profileImageUri"].toString()
+                        )
+                    )
                     userNickname = value["nickname"].toString()
                 }
             }

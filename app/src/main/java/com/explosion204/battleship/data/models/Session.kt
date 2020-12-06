@@ -2,11 +2,12 @@ package com.explosion204.battleship.data.models
 
 import com.explosion204.battleship.Constants.Companion.FIRE_REQUEST_PASS
 import com.explosion204.battleship.Constants.Companion.FIRE_RESPONSE_PASS
+import com.explosion204.battleship.Constants.Companion.GUEST_DISCONNECTED
 
 data class Session(
     var id: Long? = null,
     val hostId: String = "",
-    val guestId: String? = null,
+    val guestId: String? = GUEST_DISCONNECTED,
     var hostReady: Boolean = false,
     var guestReady: Boolean = false,
     var gameRunning: Boolean = false,

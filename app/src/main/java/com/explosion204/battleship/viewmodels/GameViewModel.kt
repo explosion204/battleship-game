@@ -132,7 +132,6 @@ class GameViewModel @Inject constructor(
     }
 
     // TODO: Delete session after the game finished]
-    // TODO: Broken session clean up
     // TODO: Second guest cannot connect to lobby (implemented, not tested)
     // TODO: Cannot connect to lobby with the same uid as host (implemented, not tested)
     // Initialize new session if user is host (!!!onComplete callback executed only in GAME_STATE_LOADING!!!)
@@ -194,6 +193,10 @@ class GameViewModel @Inject constructor(
                     if (this@GameViewModel.hostId.value != session.hostId) {
                         this@GameViewModel.hostId.postValue(session.hostId)
 
+                        if (session.hostId == HOST_DISCONNECTED) {
+                            sessionRepository.deleteSession(sessionId.value!!)
+                        }
+
                         if (!hostProfileImageLoaded) {
                             fetchHostProfileImageBitmap(session.hostId) {
                                 onComplete()
@@ -252,7 +255,7 @@ class GameViewModel @Inject constructor(
 
         // prevent session from clean up after guest leaved lobby
         if (gameController!!.isHost) {
-            ref.onDisconnect().removeValue()
+            ref.child("hostId").onDisconnect().setValue(HOST_DISCONNECTED)
         } else {
             ref.child("guestId").onDisconnect().setValue(GUEST_DISCONNECTED)
         }
@@ -324,17 +327,32 @@ class GameViewModel @Inject constructor(
         }
     }
 
+
     private fun leaveLobby() {
         if (gameController != null) {
             if (gameController!!.isHost) {
                 sessionRepository.updateSessionValue(sessionId.value!!, "hostId", HOST_DISCONNECTED)
                 sessionRepository.detachValueEventListener(sessionId.value!!, valueListener!!)
-                sessionRepository.deleteSession(sessionId.value!!)
+
+                if (guestId.value!! == GUEST_DISCONNECTED) {
+                    sessionRepository.deleteSession(sessionId.value!!)
+                }
+
             } else {
-                sessionRepository.updateSessionValue(sessionId.value!!, "guestId", GUEST_DISCONNECTED)
+                sessionRepository.updateSessionValue(
+                    sessionId.value!!,
+                    "guestId",
+                    GUEST_DISCONNECTED
+                )
                 sessionRepository.detachValueEventListener(sessionId.value!!, valueListener!!)
                 sessionRepository.updateSessionValue(sessionId.value!!, "guestReady", false)
+
+                if (hostId.value!! == HOST_DISCONNECTED) {
+                    sessionRepository.deleteSession(sessionId.value!!)
+                }
             }
+
+            gameController = null
         }
     }
 

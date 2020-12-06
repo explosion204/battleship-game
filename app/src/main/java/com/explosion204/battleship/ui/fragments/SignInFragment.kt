@@ -41,7 +41,8 @@ class SignInFragment : DaggerFragment() {
         mAuth.signOut()
 
         if (mAuth.currentUser != null) {
-            Navigation.findNavController(view).navigate(R.id.action_signinFragment_to_startupFragment)
+            Navigation.findNavController(view)
+                .navigate(R.id.action_signinFragment_to_startupFragment)
         }
 
         loadingView = view.findViewById(R.id.loading_view)
@@ -68,12 +69,17 @@ class SignInFragment : DaggerFragment() {
         val credential = GoogleAuthProvider.getCredential(account.idToken, null)
         mAuth.signInWithCredential(credential)
             .addOnSuccessListener {
-                Navigation.findNavController(requireView()).navigate(R.id.action_signinFragment_to_startupFragment)
+                Navigation.findNavController(requireView())
+                    .navigate(R.id.action_signinFragment_to_startupFragment)
             }
             .addOnFailureListener {
                 signInWithGoogleButton.isEnabled = true
                 loadingView.visibility = View.GONE
-                Toast.makeText(requireContext(), "Cannot sign in with Google. Check your internet connection.", Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    requireContext(),
+                    "Cannot sign in with Google. Check your internet connection.",
+                    Toast.LENGTH_LONG
+                ).show()
             }
     }
 
@@ -88,11 +94,14 @@ class SignInFragment : DaggerFragment() {
                     if (account != null) {
                         firebaseAuthWithGoogle(account)
                     }
-                }
-                catch (e: ApiException) {
+                } catch (e: ApiException) {
                     signInWithGoogleButton.isEnabled = true
                     loadingView.visibility = View.GONE
-                    Toast.makeText(requireContext(), "Cannot sign in with Google.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        requireContext(),
+                        "Cannot sign in with Google.",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         }

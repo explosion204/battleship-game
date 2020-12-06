@@ -45,23 +45,6 @@ class GameController(val isHost: Boolean) {
         onGameEventsListener = listener
     }
 
-//    fun setHostReady(value: Boolean) {
-//        hostReady = value
-//        onGameEventsListener?.onHostReadyChanged(value)
-//    }
-
-//    fun setGuestReady(value: Boolean) {
-//        guestReady = value
-//        onGameEventsListener?.onGuestReadyChanged(value)
-//    }
-
-//    fun setGameRunning(value: Boolean) {
-//        if (hostReady && guestReady) {
-//            gameRunning = value
-//            onGameEventsListener?.onGameRunningChanged(value)
-//        }
-//    }
-
     fun setHostTurn(value: Boolean) {
         if (hostTurn != value) {
             hostTurn = value

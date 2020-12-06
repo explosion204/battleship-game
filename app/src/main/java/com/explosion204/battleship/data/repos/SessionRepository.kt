@@ -48,18 +48,6 @@ class SessionRepository @Inject constructor(private val firebaseDatabase: Fireba
         dbSessions.child(sessionId.toString()).ref.removeValue()
     }
 
-    fun deleteSession(hostId: String) {
-        dbSessions.ref.orderByChild("hostId").equalTo(hostId)
-            .addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onCancelled(error: DatabaseError) {}
-
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    snapshot.ref.removeValue()
-                }
-
-            })
-    }
-
     // find session by its id
     fun findSession(
         sessionId: Long,
@@ -71,7 +59,7 @@ class SessionRepository @Inject constructor(private val firebaseDatabase: Fireba
                 override fun onCancelled(error: DatabaseError) {}
 
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    if (snapshot.exists()) {
+                    if (snapshot.exists() && sessionId == snapshot.child("id").value) {
                         onSuccess(snapshot.ref)
                     } else {
                         onFailure()

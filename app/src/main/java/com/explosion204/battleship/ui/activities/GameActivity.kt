@@ -1,8 +1,12 @@
 package com.explosion204.battleship.ui.activities
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.Observer
 import com.explosion204.battleship.Constants.Companion.GAME_STATE_IN_LOBBY
 import com.explosion204.battleship.Constants.Companion.GAME_STATE_IN_PROGRESS
 import com.explosion204.battleship.Constants.Companion.GAME_STATE_PAUSED
@@ -23,6 +27,27 @@ class GameActivity : DaggerAppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_game)
+
+        val connectivityManager =
+            getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        connectivityManager?.let {
+            it.registerDefaultNetworkCallback(object : ConnectivityManager.NetworkCallback() {
+                override fun onLost(network: Network) {
+                    AlertDialog.Builder(this@GameActivity)
+                        .setMessage(getString(R.string.force_leave_message))
+                        .setPositiveButton(getString(R.string.close)) { _, _ ->
+                            it.unregisterNetworkCallback(this)
+                            finish()
+                        }
+
+                        .setCancelable(false)
+                        .show()
+
+                    super.onLost(network)
+                }
+            })
+        }
     }
 
     override fun onBackPressed() {

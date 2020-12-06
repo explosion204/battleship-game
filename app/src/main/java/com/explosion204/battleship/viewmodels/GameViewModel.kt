@@ -5,7 +5,7 @@ import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.explosion204.battleship.Constants
+import com.explosion204.battleship.*
 import com.explosion204.battleship.Constants.Companion.ERROR
 import com.explosion204.battleship.Constants.Companion.FIRE_REQUEST_PASS
 import com.explosion204.battleship.Constants.Companion.FIRE_RESPONSE_MISS
@@ -16,9 +16,6 @@ import com.explosion204.battleship.Constants.Companion.GAME_STATE_LOADING
 import com.explosion204.battleship.Constants.Companion.GAME_STATE_PAUSED
 import com.explosion204.battleship.Constants.Companion.GUEST_DISCONNECTED
 import com.explosion204.battleship.Constants.Companion.HOST_DISCONNECTED
-import com.explosion204.battleship.GameController
-import com.explosion204.battleship.Matrix
-import com.explosion204.battleship.OnGameEventsListener
 import com.explosion204.battleship.data.models.Session
 import com.explosion204.battleship.data.repos.SessionRepository
 import com.explosion204.battleship.data.repos.UserRepository
@@ -40,6 +37,7 @@ class GameViewModel @Inject constructor(
     private val userRepository: UserRepository
 ) : ViewModel() {
     private var gameController: GameController? = null
+    //private var connectionController: ConnectionController? = null
 
     var gameState = GAME_STATE_LOADING
     var sessionId = MutableLiveData<Long?>(null)
@@ -62,7 +60,7 @@ class GameViewModel @Inject constructor(
     private var valueListener: ValueEventListener? = null
 
     private fun setListeners() {
-        gameController?.setOnGameEventsListener(object : OnGameEventsListener {
+        gameController?.setOnGameEventsListener(object : GameController.OnGameEventsListener {
             override fun onHostReadyChanged(newValue: Boolean) {
                 hostReady.postValue(newValue)
             }
@@ -193,7 +191,7 @@ class GameViewModel @Inject constructor(
                     if (this@GameViewModel.hostId.value != session.hostId) {
                         this@GameViewModel.hostId.postValue(session.hostId)
 
-                        if (session.hostId == HOST_DISCONNECTED) {
+                        if (session.hostId == HOST_DISCONNECTED && sessionId.value != null) {
                             sessionRepository.deleteSession(sessionId.value!!)
                         }
 
@@ -213,7 +211,7 @@ class GameViewModel @Inject constructor(
                             }
                         }
 
-                        if (session.guestId == GUEST_DISCONNECTED) {
+                        if (session.guestId != GUEST_DISCONNECTED) {
                             guestProfileImageLoaded = false
                         }
                     }
@@ -326,7 +324,6 @@ class GameViewModel @Inject constructor(
             sessionRepository.updateSessionValue(sessionId.value!!, "fireRequest", "$i-$j")
         }
     }
-
 
     private fun leaveLobby() {
         if (gameController != null) {

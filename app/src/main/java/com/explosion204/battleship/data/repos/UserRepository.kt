@@ -23,8 +23,7 @@ class UserRepository @Inject constructor(
                 .await()
                 .documents[0]
                 .reference
-        }
-        catch (e: IndexOutOfBoundsException) {
+        } catch (e: IndexOutOfBoundsException) {
             fireStore.collection("users")
                 .add(User(id, "Player"))
 

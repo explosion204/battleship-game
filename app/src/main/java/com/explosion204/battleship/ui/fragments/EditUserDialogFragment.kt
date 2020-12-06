@@ -30,7 +30,7 @@ class EditUserDialogFragment : DaggerDialogFragment() {
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
 
-    private val userViewModel : UserViewModel by viewModels {
+    private val userViewModel: UserViewModel by viewModels {
         viewModelFactory
     }
 

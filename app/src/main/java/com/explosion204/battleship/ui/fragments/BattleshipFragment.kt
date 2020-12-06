@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.explosion204.battleship.Constants
 import com.explosion204.battleship.Constants.Companion.GAME_STATE_IN_PROGRESS
 import com.explosion204.battleship.Constants.Companion.GAME_STATE_PAUSED
+import com.explosion204.battleship.Constants.Companion.GUEST_DISCONNECTED
 import com.explosion204.battleship.R
 import com.explosion204.battleship.ui.adapters.MatrixAdapter
 import com.explosion204.battleship.ui.interfaces.OnItemClickListener
@@ -118,7 +119,13 @@ class BattleshipFragment : DaggerFragment() {
             if (userId.isNotEmpty()) {
                 when (userId) {
                     Constants.HOST_DISCONNECTED -> {
-                        requireActivity().finish()
+                        AlertDialog.Builder(requireContext())
+                            .setMessage(getString(R.string.force_leave_message))
+                            .setPositiveButton("Close") { _, _ ->
+                                requireActivity().finish()
+                            }
+                            .setCancelable(false)
+                            .show()
                     }
                     else -> {
                         userViewModel.getUser(userId).observe(viewLifecycleOwner, Observer { user ->
@@ -136,8 +143,14 @@ class BattleshipFragment : DaggerFragment() {
         gameViewModel.guestId.observe(viewLifecycleOwner, Observer { userId ->
             if (userId != null && userId.isNotEmpty()) {
                 when (userId) {
-                    Constants.GUEST_DISCONNECTED -> {
-                        requireActivity().finish()
+                    GUEST_DISCONNECTED -> {
+                        AlertDialog.Builder(requireContext())
+                            .setMessage(getString(R.string.force_leave_message))
+                            .setPositiveButton(getString(R.string.close)) { _, _ ->
+                                requireActivity().finish()
+                            }
+                            .setCancelable(false)
+                            .show()
                     }
                     else -> {
                         userViewModel.getUser(userId).observe(viewLifecycleOwner, Observer { user ->

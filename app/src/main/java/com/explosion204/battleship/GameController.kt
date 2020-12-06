@@ -1,18 +1,24 @@
 package com.explosion204.battleship
 
-import androidx.lifecycle.MutableLiveData
-import com.explosion204.battleship.Constants.Companion.FIRE_REQUEST_PASS
 import com.explosion204.battleship.Constants.Companion.FIRE_RESPONSE_HIT
 import com.explosion204.battleship.Constants.Companion.FIRE_RESPONSE_MISS
-import com.explosion204.battleship.Constants.Companion.FIRE_RESPONSE_PASS
-import com.explosion204.battleship.Constants.Companion.GAME_STATE_IN_PROGRESS
-import com.explosion204.battleship.Constants.Companion.GAME_STATE_PAUSED
 import com.explosion204.battleship.Constants.Companion.MATRIX_FREE_CELL
 import com.explosion204.battleship.Constants.Companion.MATRIX_HIT_CELL
 import com.explosion204.battleship.Constants.Companion.MATRIX_MISSED_CELL
 import com.explosion204.battleship.Constants.Companion.MATRIX_TAKEN_CELL
 
 class GameController(val isHost: Boolean) {
+    interface OnGameEventsListener {
+        fun onHostReadyChanged(newValue: Boolean)
+        fun onGuestReadyChanged(newValue: Boolean)
+        fun onGameRunningChanged(newValue: Boolean)
+        fun onHostTurnChanged(newValue: Boolean)
+        fun onPlayerMatrixChanged(newValue: Matrix)
+        fun onOpponentMatrixChanged(newValue: Matrix)
+        fun onFireRequestProcessed(i: Int, j: Int, response: String)
+        fun onFireResponseProcessed(i: Int, j: Int, response: String, hostTurn: Boolean)
+    }
+
     private var onGameEventsListener: OnGameEventsListener? = null
 
     private var playerMatrix = Matrix(10, 10)

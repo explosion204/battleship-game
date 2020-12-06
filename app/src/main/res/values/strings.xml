@@ -24,4 +24,6 @@
     <string name="leave_lobby">Leave lobby?</string>
     <string name="leave">Leave</string>
     <string name="cancel">Cancel</string>
+    <string name="force_leave_message">Your opponent left the game or connection lost</string>
+    <string name="close">Close</string>
 </resources>

@@ -24,7 +24,7 @@ class MatrixAdapter(private val context: Context, private var matrix: Matrix) :
     private var itemClickListener: OnItemClickListener? = null
     private var clickAllowed = true
 
-    fun setOnItemClickListener(listener: OnItemClickListener) {
+    fun setOnItemClickListener(listener: OnItemClickListener?) {
         itemClickListener = listener
     }
 

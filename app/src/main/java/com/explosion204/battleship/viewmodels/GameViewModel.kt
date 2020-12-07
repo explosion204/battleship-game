@@ -156,7 +156,6 @@ class GameViewModel @Inject constructor(
     // TODO: Delete session after the game finished]
     // TODO: Second guest cannot connect to lobby (implemented, not tested)
     // TODO: Cannot connect to lobby with the same uid as host (implemented, not tested)
-    // TODO: Auth service
     // Initialize new session if user is host (!!!onComplete callback executed only in GAME_STATE_LOADING!!!)
     fun initNewSession(userId: String, onComplete: () -> Unit) {
         gameController =

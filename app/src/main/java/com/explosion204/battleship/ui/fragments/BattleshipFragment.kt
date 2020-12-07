@@ -44,6 +44,7 @@ class BattleshipFragment : DaggerFragment() {
     private lateinit var opponentPic: ImageView
     private lateinit var playerStatus: TextView
     private lateinit var opponentStatus: TextView
+    private lateinit var pauseDialogBuilder: AlertDialog.Builder
 
     private var isHost = false
 
@@ -65,6 +66,17 @@ class BattleshipFragment : DaggerFragment() {
         playerStatus = view.findViewById(R.id.player_status)
         opponentStatus = view.findViewById(R.id.opponent_status)
 
+        pauseDialogBuilder = AlertDialog.Builder(requireContext())
+            .setMessage("Game paused")
+            .setPositiveButton("Resume") { _, _ ->
+                gameViewModel.setGameRunning(true)
+            }
+            .setNegativeButton("Leave") { dialog, _ ->
+                dialog.dismiss()
+                requireActivity().finish()
+            }
+            .setCancelable(false)
+
         val playerMatrix = gameViewModel.playerMatrix.value!!
         val opponentMatrix = gameViewModel.opponentMatrix.value!!
 
@@ -81,7 +93,6 @@ class BattleshipFragment : DaggerFragment() {
         isHost = requireActivity().intent.getBooleanExtra(Constants.IS_HOST_EXTRA, false)
 
         setLayoutParams()
-        setListeners()
         setObservables()
     }
 
@@ -105,15 +116,9 @@ class BattleshipFragment : DaggerFragment() {
         return dp * resources.displayMetrics.densityDpi / 160
     }
 
-    private fun setListeners() {
-        opponentMatrixAdapter.setOnItemClickListener(object : MatrixAdapter.OnItemClickListener {
-            override fun onItemClick(i: Int, j: Int) {
-                gameViewModel.postFireRequest(i, j)
-            }
-        })
-    }
-
     private fun setObservables() {
+        var pauseDialog: AlertDialog? = null
+
         gameViewModel.hostId.observe(viewLifecycleOwner, Observer { userId ->
             if (userId.isNotEmpty() && gameViewModel.hostDefeated.value!! && gameViewModel.guestDefeated.value!!) {
                 when (userId) {
@@ -121,6 +126,7 @@ class BattleshipFragment : DaggerFragment() {
                         AlertDialog.Builder(requireContext())
                             .setMessage(getString(R.string.force_leave_message))
                             .setPositiveButton("Close") { _, _ ->
+                                pauseDialog?.dismiss()
                                 requireActivity().finish()
                             }
                             .setCancelable(false)
@@ -140,12 +146,13 @@ class BattleshipFragment : DaggerFragment() {
         })
 
         gameViewModel.guestId.observe(viewLifecycleOwner, Observer { userId ->
-            if (userId != null && userId.isNotEmpty() && gameViewModel.hostDefeated.value!! && gameViewModel.guestDefeated.value!!) {
+            if (userId != null && userId.isNotEmpty() && !gameViewModel.hostDefeated.value!! && !gameViewModel.guestDefeated.value!!) {
                 when (userId) {
                     GUEST_DISCONNECTED -> {
                         AlertDialog.Builder(requireContext())
                             .setMessage(getString(R.string.force_leave_message))
                             .setPositiveButton(getString(R.string.close)) { _, _ ->
+                                pauseDialog?.dismiss()
                                 requireActivity().finish()
                             }
                             .setCancelable(false)
@@ -185,17 +192,29 @@ class BattleshipFragment : DaggerFragment() {
                 if (it) {
                     playerStatus.text = getString(R.string.firing)
                     opponentStatus.text = ""
+                    opponentMatrixAdapter.setOnItemClickListener(object : MatrixAdapter.OnItemClickListener {
+                        override fun onItemClick(i: Int, j: Int) {
+                            gameViewModel.postFireRequest(i, j)
+                        }
+                    })
                 } else {
                     playerStatus.text = ""
                     opponentStatus.text = getString(R.string.firing)
+                    opponentMatrixAdapter.setOnItemClickListener(null)
                 }
             } else {
                 if (it) {
                     playerStatus.text = ""
                     opponentStatus.text = getString(R.string.firing)
+                    opponentMatrixAdapter.setOnItemClickListener(null)
                 } else {
                     playerStatus.text = getString(R.string.firing)
                     opponentStatus.text = ""
+                    opponentMatrixAdapter.setOnItemClickListener(object : MatrixAdapter.OnItemClickListener {
+                        override fun onItemClick(i: Int, j: Int) {
+                            gameViewModel.postFireRequest(i, j)
+                        }
+                    })
                 }
             }
         })
@@ -207,19 +226,6 @@ class BattleshipFragment : DaggerFragment() {
         gameViewModel.opponentMatrix.observe(viewLifecycleOwner, Observer {
             opponentMatrixAdapter.setMatrix(it)
         })
-
-        val pauseDialogBuilder = AlertDialog.Builder(requireContext())
-            .setMessage("Game paused")
-            .setPositiveButton("Resume") { _, _ ->
-                gameViewModel.setGameRunning(true)
-            }
-            .setNegativeButton("Leave") { dialog, _ ->
-                dialog.dismiss()
-                requireActivity().finish()
-            }
-            .setCancelable(false)
-
-        var pauseDialog: AlertDialog? = null
 
         gameViewModel.gameRunning.observe(viewLifecycleOwner, Observer {
             when (gameViewModel.gameState) {

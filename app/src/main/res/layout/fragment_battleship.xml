@@ -45,19 +45,6 @@
                 android:gravity="center_vertical"
                 android:text="@string/firing" />
 
-            <View
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:gravity="center_vertical"
-                android:layout_marginEnd="10dp"
-                android:textSize="20sp"
-                android:text="30" />
-
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
@@ -82,14 +69,6 @@
             android:orientation="horizontal"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:gravity="center_vertical"
-                android:layout_marginStart="10dp"
-                android:textSize="20sp"
-                android:text="30" />
 
             <View
                 android:layout_width="0dp"

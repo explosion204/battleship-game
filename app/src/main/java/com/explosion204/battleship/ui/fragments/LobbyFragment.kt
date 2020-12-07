@@ -144,8 +144,15 @@ class LobbyFragment : DaggerFragment() {
             if (userId != null && userId.isNotEmpty()) {
                 when (userId) {
                     GUEST_DISCONNECTED -> {
-                        guestPlayerNickname.text = getString(R.string.empty_slot)
-                        guestPlayerPic.setImageResource(0)
+                        // we need to skip every even disconnection event to prevent
+                        // setting guest bitmap null while connection to lobby
+                        if (gameViewModel.disconnectAllowed) {
+                            guestPlayerNickname.text = getString(R.string.empty_slot)
+                            guestPlayerPic.setImageResource(0)
+                            gameViewModel.disconnectAllowed = false
+                        } else {
+                            gameViewModel.disconnectAllowed = true
+                        }
                     }
                     else -> {
                         userViewModel.getUser(userId).observe(viewLifecycleOwner, Observer { user ->

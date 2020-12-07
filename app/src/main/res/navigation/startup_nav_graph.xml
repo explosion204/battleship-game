@@ -14,6 +14,9 @@
             app:destination="@id/signinFragment"
             app:popUpTo="@id/startup_nav_graph"
             app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_startupFragment_to_statsFragment"
+            app:destination="@id/statsFragment" />
     </fragment>
     <fragment
         android:id="@+id/signinFragment"
@@ -25,4 +28,9 @@
             app:popUpTo="@id/startup_nav_graph"
             app:popUpToInclusive="true" />
     </fragment>
+    <fragment
+        android:id="@+id/statsFragment"
+        android:name="com.explosion204.battleship.ui.fragments.StatsFragment"
+        android:label="fragment_stats"
+        tools:layout="@layout/fragment_stats" />
 </navigation>

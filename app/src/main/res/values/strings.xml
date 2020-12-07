@@ -28,4 +28,8 @@
     <string name="close">Close</string>
     <string name="you_lost">You lost!</string>
     <string name="you_won">You won!</string>
+    <string name="opponent">Opponent:&#160;</string>
+    <string name="won">WON</string>
+    <string name="lost">LOST</string>
+    <string name="history">History</string>
 </resources>

@@ -51,6 +51,11 @@ class StartupFragment : DaggerFragment(), FirebaseAuth.AuthStateListener {
             dialogFragment.arguments = args
             dialogFragment.show(requireActivity().supportFragmentManager, "DIALOG_FRAGMENT")
         }
+
+        view.findViewById<Button>(R.id.history_button).setOnClickListener {
+            Navigation.findNavController(requireView())
+                .navigate(R.id.action_startupFragment_to_statsFragment)
+        }
     }
 
     override fun onStart() {
@@ -65,7 +70,8 @@ class StartupFragment : DaggerFragment(), FirebaseAuth.AuthStateListener {
 
     override fun onAuthStateChanged(mAuth: FirebaseAuth) {
         if (mAuth.currentUser == null) {
-            Navigation.findNavController(requireView()).navigate(R.id.action_startupFragment_to_signinFragment)
+            Navigation.findNavController(requireView())
+                .navigate(R.id.action_startupFragment_to_signinFragment)
         }
     }
 

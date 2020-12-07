@@ -16,6 +16,8 @@ import com.explosion204.battleship.Constants
 import com.explosion204.battleship.Constants.Companion.GAME_STATE_IN_PROGRESS
 import com.explosion204.battleship.Constants.Companion.GAME_STATE_PAUSED
 import com.explosion204.battleship.Constants.Companion.GUEST_DISCONNECTED
+import com.explosion204.battleship.Constants.Companion.OUTCOME_FIRST_PLAYER_WON
+import com.explosion204.battleship.Constants.Companion.OUTCOME_SECOND_PLAYER_WON
 import com.explosion204.battleship.R
 import com.explosion204.battleship.ui.adapters.MatrixAdapter
 import com.explosion204.battleship.viewmodels.GameViewModel
@@ -241,6 +243,10 @@ class BattleshipFragment : DaggerFragment() {
 
         gameViewModel.hostDefeated.observe(viewLifecycleOwner, Observer {
             if (it) {
+                if (isHost) {
+                    gameViewModel.postGameResult(OUTCOME_SECOND_PLAYER_WON)
+                }
+
                 AlertDialog.Builder(requireContext())
                     .setMessage(if (isHost) getString(R.string.you_lost) else getString(R.string.you_won))
                     .setPositiveButton(R.string.close) { dialog, _ ->
@@ -255,6 +261,10 @@ class BattleshipFragment : DaggerFragment() {
 
         gameViewModel.guestDefeated.observe(viewLifecycleOwner, Observer {
             if (it) {
+                if (isHost) {
+                    gameViewModel.postGameResult(OUTCOME_FIRST_PLAYER_WON)
+                }
+
                 AlertDialog.Builder(requireContext())
                     .setMessage(if (isHost) getString(R.string.you_won) else getString(R.string.you_lost))
                     .setPositiveButton(R.string.close) { dialog, _ ->

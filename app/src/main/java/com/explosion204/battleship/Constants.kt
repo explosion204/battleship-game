@@ -27,5 +27,8 @@ class Constants {
         const val MATRIX_TAKEN_CELL: Byte = 1
         const val MATRIX_HIT_CELL: Byte = 2
         const val MATRIX_MISSED_CELL: Byte = 3
+
+        const val OUTCOME_FIRST_PLAYER_WON = "com.explosion204.battleship.OUTCOME_FIRST_PLAYER_WON"
+        const val OUTCOME_SECOND_PLAYER_WON = "com.explosion204.battleship.OUTCOME_SECOND_PLAYER_WON"
     }
 }

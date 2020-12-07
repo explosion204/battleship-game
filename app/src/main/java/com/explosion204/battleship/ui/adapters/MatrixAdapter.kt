@@ -13,7 +13,7 @@ import com.explosion204.battleship.Constants.Companion.MATRIX_TAKEN_CELL
 import com.explosion204.battleship.core.Matrix
 import com.explosion204.battleship.R
 
-class MatrixAdapter(private val context: Context, private var matrix: Matrix) :
+class MatrixAdapter(context: Context, private var matrix: Matrix) :
     RecyclerView.Adapter<MatrixAdapter.CellViewHolder>() {
 
     interface OnItemClickListener {

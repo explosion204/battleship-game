@@ -15,20 +15,25 @@ class UserRepository @Inject constructor(
     private val fireStore: FirebaseFirestore,
     private val storage: FirebaseStorage
 ) {
-    suspend fun getUser(id: String): DocumentReference {
-        return try {
-            fireStore.collection("users")
-                .whereEqualTo("userId", id)
-                .get()
-                .await()
-                .documents[0]
-                .reference
-        } catch (e: IndexOutOfBoundsException) {
-            fireStore.collection("users")
-                .add(User(id, "Player"))
+    fun getUser(id: String, callback: (ref: DocumentReference) -> Unit) {
+        fireStore.collection("users")
+            .whereEqualTo("userId", id)
+            .get()
+            .addOnCompleteListener {
+                if (it.isSuccessful && it.result != null) {
+                    val docs = it.result!!.documents
 
-            getUser(id)
-        }
+                    if (docs.size != 0) {
+                        callback(docs[0].reference)
+                    } else {
+                        fireStore.collection("users")
+                            .add(User(id, "Player"))
+                            .addOnSuccessListener {
+                                getUser(id, callback)
+                            }
+                    }
+                }
+            }
     }
 
     fun setUserNickname(id: String, newNickname: String) {

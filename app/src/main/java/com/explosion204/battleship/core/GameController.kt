@@ -54,19 +54,17 @@ class GameController(val isHost: Boolean) {
     }
 
     fun setHostTurn(value: Boolean) {
-        if (hostTurn != value) {
-            hostTurn = value
+        hostTurn = value
 
-            if (isHost) {
-                lockRequestProcessing = hostTurn
-                lockResponseProcessing = !hostTurn
-            } else {
-                lockRequestProcessing = !hostTurn
-                lockResponseProcessing = hostTurn
-            }
-
-            onGameEventsListener?.onHostTurnChanged(value)
+        if (isHost) {
+            lockRequestProcessing = hostTurn
+            lockResponseProcessing = !hostTurn
+        } else {
+            lockRequestProcessing = !hostTurn
+            lockResponseProcessing = hostTurn
         }
+
+        onGameEventsListener?.onHostTurnChanged(value)
     }
 
     fun processFireRequest(i: Int, j: Int) {

@@ -17,7 +17,9 @@ import com.explosion204.battleship.Constants.Companion.GUEST_DISCONNECTED
 import com.explosion204.battleship.Constants.Companion.HOST_DISCONNECTED
 import com.explosion204.battleship.core.GameController
 import com.explosion204.battleship.core.Matrix
+import com.explosion204.battleship.data.models.GameResult
 import com.explosion204.battleship.data.models.Session
+import com.explosion204.battleship.data.repos.GameResultRepository
 import com.explosion204.battleship.data.repos.SessionRepository
 import com.explosion204.battleship.data.repos.UserRepository
 import com.explosion204.battleship.ui.util.CircleTransform
@@ -35,7 +37,8 @@ import javax.inject.Inject
 // GameController notifies view model about its internal changes -> view model updates ui
 class GameViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val gameResultRepository: GameResultRepository
 ) : ViewModel() {
     private var gameController: GameController? = null
 
@@ -55,6 +58,7 @@ class GameViewModel @Inject constructor(
             10
         )
     )
+    var disconnectAllowed = true
     var hostReady = MutableLiveData(false)
     var guestReady = MutableLiveData(false)
     var gameRunning = MutableLiveData(false)
@@ -64,8 +68,8 @@ class GameViewModel @Inject constructor(
     var hostDefeated = MutableLiveData(false)
     var guestDefeated = MutableLiveData(false)
 
-    private var picassoTargetHost: Target? = null
-    private var picassoTargetGuest: Target? = null
+    private lateinit var picassoTargetHost: Target
+    private lateinit var picassoTargetGuest: Target
 
     private var hostProfileImageLoaded = false
     private var guestProfileImageLoaded = false
@@ -180,8 +184,7 @@ class GameViewModel @Inject constructor(
         onComplete: () -> Unit,
         onFailure: () -> Unit
     ) {
-        gameController =
-            GameController(isHost = false)
+        gameController = GameController(isHost = false)
         setListeners()
         sessionRepository.findSession(sessionId,
             { ref ->
@@ -282,7 +285,6 @@ class GameViewModel @Inject constructor(
                     }
                 }
             }
-
         })
 
         if (isHost) {
@@ -396,5 +398,11 @@ class GameViewModel @Inject constructor(
     override fun onCleared() {
         leaveLobby()
         super.onCleared()
+    }
+
+    fun postGameResult(outcome: String) {
+        if (hostId.value != null && guestId.value != null) {
+            gameResultRepository.addGameResult(GameResult(hostId.value!!, guestId.value!!, "", outcome))
+        }
     }
 }

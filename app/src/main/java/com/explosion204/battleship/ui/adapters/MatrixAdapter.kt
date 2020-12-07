@@ -10,12 +10,16 @@ import com.explosion204.battleship.Constants.Companion.MATRIX_FREE_CELL
 import com.explosion204.battleship.Constants.Companion.MATRIX_HIT_CELL
 import com.explosion204.battleship.Constants.Companion.MATRIX_MISSED_CELL
 import com.explosion204.battleship.Constants.Companion.MATRIX_TAKEN_CELL
-import com.explosion204.battleship.Matrix
+import com.explosion204.battleship.core.Matrix
 import com.explosion204.battleship.R
-import com.explosion204.battleship.ui.interfaces.OnItemClickListener
 
 class MatrixAdapter(private val context: Context, private var matrix: Matrix) :
     RecyclerView.Adapter<MatrixAdapter.CellViewHolder>() {
+
+    interface OnItemClickListener {
+        fun onItemClick(i: Int, j: Int)
+    }
+
     private val inflater = LayoutInflater.from(context)
     private var itemClickListener: OnItemClickListener? = null
     private var clickAllowed = true

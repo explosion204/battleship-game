@@ -1,4 +1,4 @@
-package com.explosion204.battleship
+package com.explosion204.battleship.core
 
 import com.explosion204.battleship.Constants.Companion.MATRIX_FREE_CELL
 import com.explosion204.battleship.Constants.Companion.MATRIX_TAKEN_CELL
@@ -14,19 +14,51 @@ class MatrixGenerator {
                 val newMatrix = Array(rowsCount) { ByteArray(rowCapacity) { MATRIX_FREE_CELL } }
                 var result = true
 
-                result = placeShip(newMatrix, rowsCount, rowCapacity, 4, 1)
+                result =
+                    placeShip(
+                        newMatrix,
+                        rowsCount,
+                        rowCapacity,
+                        4,
+                        1
+                    )
                 if (!result) continue
 
-                result = placeShip(newMatrix, rowsCount, rowCapacity, 3, 2)
+                result =
+                    placeShip(
+                        newMatrix,
+                        rowsCount,
+                        rowCapacity,
+                        3,
+                        2
+                    )
                 if (!result) continue
 
-                result = placeShip(newMatrix, rowsCount, rowCapacity, 2, 3)
+                result =
+                    placeShip(
+                        newMatrix,
+                        rowsCount,
+                        rowCapacity,
+                        2,
+                        3
+                    )
                 if (!result) continue
 
-                result = placeShip(newMatrix, rowsCount, rowCapacity, 1, 4)
+                result =
+                    placeShip(
+                        newMatrix,
+                        rowsCount,
+                        rowCapacity,
+                        1,
+                        4
+                    )
                 if (!result) continue
 
-                return Matrix(rowsCount, rowCapacity, newMatrix)
+                return Matrix(
+                    rowsCount,
+                    rowCapacity,
+                    newMatrix
+                )
             }
         }
 
@@ -37,7 +69,12 @@ class MatrixGenerator {
             size: Int,
             count: Int
         ): Boolean {
-            var resultMatrix = deepCopy(matrix, rowsCount, rowCapacity)
+            var resultMatrix =
+                deepCopy(
+                    matrix,
+                    rowsCount,
+                    rowCapacity
+                )
 
 
             for (i in 0 until count) {
@@ -51,18 +88,33 @@ class MatrixGenerator {
 
                     if (randDirection == DIRECTION_RIGHT) {
                         for (k in 0 until size) {
-                            free = checkArea(resultMatrix, randRow, randPos + k)
+                            free =
+                                checkArea(
+                                    resultMatrix,
+                                    randRow,
+                                    randPos + k
+                                )
 
                             if (!free) break
                         }
 
                         if (free) {
                             try {
-                                val buffer = deepCopy(resultMatrix, rowsCount, rowCapacity)
+                                val buffer =
+                                    deepCopy(
+                                        resultMatrix,
+                                        rowsCount,
+                                        rowCapacity
+                                    )
                                 for (k in 0 until size) {
                                     buffer[randRow][randPos + k] = MATRIX_TAKEN_CELL
                                 }
-                                resultMatrix = deepCopy(buffer, rowsCount, rowCapacity)
+                                resultMatrix =
+                                    deepCopy(
+                                        buffer,
+                                        rowsCount,
+                                        rowCapacity
+                                    )
                                 break
                             } catch (e: Exception) {
                             }
@@ -72,18 +124,33 @@ class MatrixGenerator {
                         continue
                     } else if (randDirection == DIRECTION_DOWN) {
                         for (k in 0 until size) {
-                            free = checkArea(resultMatrix, randRow + k, randPos)
+                            free =
+                                checkArea(
+                                    resultMatrix,
+                                    randRow + k,
+                                    randPos
+                                )
 
                             if (!free) break
                         }
 
                         if (free) {
                             try {
-                                val buffer = deepCopy(resultMatrix, rowsCount, rowCapacity)
+                                val buffer =
+                                    deepCopy(
+                                        resultMatrix,
+                                        rowsCount,
+                                        rowCapacity
+                                    )
                                 for (k in 0 until size) {
                                     buffer[randRow + k][randPos] = MATRIX_TAKEN_CELL
                                 }
-                                resultMatrix = deepCopy(buffer, rowsCount, rowCapacity)
+                                resultMatrix =
+                                    deepCopy(
+                                        buffer,
+                                        rowsCount,
+                                        rowCapacity
+                                    )
                                 break
                             } catch (e: Exception) {
                             }
@@ -93,18 +160,33 @@ class MatrixGenerator {
                         continue
                     } else if (randDirection == DIRECTION_LEFT) {
                         for (k in 0 until size) {
-                            free = checkArea(resultMatrix, randRow, randPos - k)
+                            free =
+                                checkArea(
+                                    resultMatrix,
+                                    randRow,
+                                    randPos - k
+                                )
 
                             if (!free) break
                         }
 
                         if (free) {
                             try {
-                                val buffer = deepCopy(resultMatrix, rowsCount, rowCapacity)
+                                val buffer =
+                                    deepCopy(
+                                        resultMatrix,
+                                        rowsCount,
+                                        rowCapacity
+                                    )
                                 for (k in 0 until size) {
                                     buffer[randRow][randPos - k] = MATRIX_TAKEN_CELL
                                 }
-                                resultMatrix = deepCopy(buffer, rowsCount, rowCapacity)
+                                resultMatrix =
+                                    deepCopy(
+                                        buffer,
+                                        rowsCount,
+                                        rowCapacity
+                                    )
                                 break
                             } catch (e: Exception) {
                             }
@@ -114,18 +196,33 @@ class MatrixGenerator {
                         continue
                     } else { // DIRECTION_UP
                         for (k in 0 until size) {
-                            free = checkArea(resultMatrix, randRow - k, randPos)
+                            free =
+                                checkArea(
+                                    resultMatrix,
+                                    randRow - k,
+                                    randPos
+                                )
 
                             if (!free) break
                         }
 
                         if (free) {
                             try {
-                                val buffer = deepCopy(resultMatrix, rowsCount, rowCapacity)
+                                val buffer =
+                                    deepCopy(
+                                        resultMatrix,
+                                        rowsCount,
+                                        rowCapacity
+                                    )
                                 for (k in 0 until size) {
                                     buffer[randRow - k][randPos] = MATRIX_TAKEN_CELL
                                 }
-                                resultMatrix = deepCopy(buffer, rowsCount, rowCapacity)
+                                resultMatrix =
+                                    deepCopy(
+                                        buffer,
+                                        rowsCount,
+                                        rowCapacity
+                                    )
                                 break
                             } catch (e: Exception) {
                             }

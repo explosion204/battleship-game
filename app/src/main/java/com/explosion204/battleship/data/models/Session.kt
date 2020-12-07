@@ -14,6 +14,6 @@ data class Session(
     var hostTurn: Boolean = false,
     var fireRequest: String = FIRE_REQUEST_PASS,
     var fireResponse: String = FIRE_RESPONSE_PASS,
-    var hostShips: Int = 10,
-    var guestShips: Int = 10
+    var hostDefeated: Boolean = false,
+    var guestDefeated: Boolean = false
 )

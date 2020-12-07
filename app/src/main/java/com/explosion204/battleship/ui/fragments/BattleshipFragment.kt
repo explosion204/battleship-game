@@ -18,7 +18,6 @@ import com.explosion204.battleship.Constants.Companion.GAME_STATE_PAUSED
 import com.explosion204.battleship.Constants.Companion.GUEST_DISCONNECTED
 import com.explosion204.battleship.R
 import com.explosion204.battleship.ui.adapters.MatrixAdapter
-import com.explosion204.battleship.ui.interfaces.OnItemClickListener
 import com.explosion204.battleship.viewmodels.GameViewModel
 import com.explosion204.battleship.viewmodels.UserViewModel
 import com.explosion204.battleship.viewmodels.ViewModelFactory
@@ -107,7 +106,7 @@ class BattleshipFragment : DaggerFragment() {
     }
 
     private fun setListeners() {
-        opponentMatrixAdapter.setOnItemClickListener(object : OnItemClickListener {
+        opponentMatrixAdapter.setOnItemClickListener(object : MatrixAdapter.OnItemClickListener {
             override fun onItemClick(i: Int, j: Int) {
                 gameViewModel.postFireRequest(i, j)
             }
@@ -116,7 +115,7 @@ class BattleshipFragment : DaggerFragment() {
 
     private fun setObservables() {
         gameViewModel.hostId.observe(viewLifecycleOwner, Observer { userId ->
-            if (userId.isNotEmpty()) {
+            if (userId.isNotEmpty() && gameViewModel.hostDefeated.value!! && gameViewModel.guestDefeated.value!!) {
                 when (userId) {
                     Constants.HOST_DISCONNECTED -> {
                         AlertDialog.Builder(requireContext())
@@ -141,7 +140,7 @@ class BattleshipFragment : DaggerFragment() {
         })
 
         gameViewModel.guestId.observe(viewLifecycleOwner, Observer { userId ->
-            if (userId != null && userId.isNotEmpty()) {
+            if (userId != null && userId.isNotEmpty() && gameViewModel.hostDefeated.value!! && gameViewModel.guestDefeated.value!!) {
                 when (userId) {
                     GUEST_DISCONNECTED -> {
                         AlertDialog.Builder(requireContext())
@@ -231,6 +230,34 @@ class BattleshipFragment : DaggerFragment() {
                 GAME_STATE_PAUSED -> {
                     pauseDialog = pauseDialogBuilder.show()
                 }
+            }
+        })
+
+        gameViewModel.hostDefeated.observe(viewLifecycleOwner, Observer {
+            if (it) {
+                AlertDialog.Builder(requireContext())
+                    .setMessage(if (isHost) getString(R.string.you_lost) else getString(R.string.you_won))
+                    .setPositiveButton(R.string.close) { dialog, _ ->
+                        dialog.dismiss()
+                        requireActivity().finish()
+                    }
+                    .setNegativeButton(R.string.cancel) { _, _ -> }
+                    .setCancelable(false)
+                    .show()
+            }
+        })
+
+        gameViewModel.guestDefeated.observe(viewLifecycleOwner, Observer {
+            if (it) {
+                AlertDialog.Builder(requireContext())
+                    .setMessage(if (isHost) getString(R.string.you_won) else getString(R.string.you_lost))
+                    .setPositiveButton(R.string.close) { dialog, _ ->
+                        dialog.dismiss()
+                        requireActivity().finish()
+                    }
+                    .setNegativeButton(R.string.cancel) { _, _ -> }
+                    .setCancelable(false)
+                    .show()
             }
         })
     }

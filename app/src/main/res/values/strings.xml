@@ -26,4 +26,6 @@
     <string name="cancel">Cancel</string>
     <string name="force_leave_message">Your opponent left the game or connection lost</string>
     <string name="close">Close</string>
+    <string name="you_lost">You lost!</string>
+    <string name="you_won">You won!</string>
 </resources>

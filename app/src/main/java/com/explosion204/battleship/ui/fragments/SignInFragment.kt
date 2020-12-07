@@ -24,7 +24,6 @@ import dagger.android.support.DaggerFragment
 
 class SignInFragment : DaggerFragment() {
     private lateinit var mAuth: FirebaseAuth
-    private lateinit var mGoogleSignInClient: GoogleSignInClient
     private lateinit var loadingView: ProgressBar
     private lateinit var signInWithGoogleButton: CardView
 
@@ -60,7 +59,7 @@ class SignInFragment : DaggerFragment() {
             .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
             .build()
-        mGoogleSignInClient = GoogleSignIn.getClient(requireActivity(), gso)
+        val mGoogleSignInClient = GoogleSignIn.getClient(requireActivity(), gso)
 
         startActivityForResult(mGoogleSignInClient.signInIntent, GOOGLE_SIGN_IN)
     }

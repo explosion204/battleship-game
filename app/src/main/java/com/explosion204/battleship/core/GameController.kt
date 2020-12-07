@@ -1,4 +1,4 @@
-package com.explosion204.battleship
+package com.explosion204.battleship.core
 
 import com.explosion204.battleship.Constants.Companion.FIRE_RESPONSE_HIT
 import com.explosion204.battleship.Constants.Companion.FIRE_RESPONSE_MISS
@@ -17,12 +17,14 @@ class GameController(val isHost: Boolean) {
         fun onOpponentMatrixChanged(newValue: Matrix)
         fun onFireRequestProcessed(i: Int, j: Int, response: String)
         fun onFireResponseProcessed(i: Int, j: Int, response: String, hostTurn: Boolean)
+        fun onDefeat()
     }
 
     private var onGameEventsListener: OnGameEventsListener? = null
 
     private var playerMatrix = Matrix(10, 10)
     private var opponentMatrix = Matrix(10, 10)
+    private var cellsAlive = 20
 
     var hostReady = false
         set(value) {
@@ -77,8 +79,13 @@ class GameController(val isHost: Boolean) {
                 }
                 MATRIX_TAKEN_CELL -> {
                     playerMatrix[i, j] = MATRIX_HIT_CELL
+                    cellsAlive--
                     onGameEventsListener?.onPlayerMatrixChanged(playerMatrix)
                     onGameEventsListener?.onFireRequestProcessed(i, j, FIRE_RESPONSE_HIT)
+
+                    if (cellsAlive < 1) {
+                        onGameEventsListener?.onDefeat()
+                    }
                 }
             }
         }
@@ -107,7 +114,11 @@ class GameController(val isHost: Boolean) {
     }
 
     fun generateMatrix() {
-        playerMatrix = MatrixGenerator.generate(10, 10)
+        playerMatrix =
+            MatrixGenerator.generate(
+                10,
+                10
+            )
         onGameEventsListener?.onPlayerMatrixChanged(playerMatrix)
     }
 }

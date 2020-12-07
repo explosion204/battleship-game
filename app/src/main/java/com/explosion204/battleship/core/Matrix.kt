@@ -1,4 +1,4 @@
-package com.explosion204.battleship
+package com.explosion204.battleship.core
 
 import com.explosion204.battleship.Constants.Companion.MATRIX_FREE_CELL
 import java.lang.IndexOutOfBoundsException

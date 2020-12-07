@@ -5,7 +5,6 @@ import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.explosion204.battleship.*
 import com.explosion204.battleship.Constants.Companion.ERROR
 import com.explosion204.battleship.Constants.Companion.FIRE_REQUEST_PASS
 import com.explosion204.battleship.Constants.Companion.FIRE_RESPONSE_MISS
@@ -16,6 +15,8 @@ import com.explosion204.battleship.Constants.Companion.GAME_STATE_LOADING
 import com.explosion204.battleship.Constants.Companion.GAME_STATE_PAUSED
 import com.explosion204.battleship.Constants.Companion.GUEST_DISCONNECTED
 import com.explosion204.battleship.Constants.Companion.HOST_DISCONNECTED
+import com.explosion204.battleship.core.GameController
+import com.explosion204.battleship.core.Matrix
 import com.explosion204.battleship.data.models.Session
 import com.explosion204.battleship.data.repos.SessionRepository
 import com.explosion204.battleship.data.repos.UserRepository
@@ -42,14 +43,26 @@ class GameViewModel @Inject constructor(
     var sessionId = MutableLiveData<Long?>(null)
     var hostId = MutableLiveData("")
     var guestId = MutableLiveData("")
-    var playerMatrix = MutableLiveData(Matrix(10, 10))
-    var opponentMatrix = MutableLiveData(Matrix(10, 10))
+    var playerMatrix = MutableLiveData(
+        Matrix(
+            10,
+            10
+        )
+    )
+    var opponentMatrix = MutableLiveData(
+        Matrix(
+            10,
+            10
+        )
+    )
     var hostReady = MutableLiveData(false)
     var guestReady = MutableLiveData(false)
     var gameRunning = MutableLiveData(false)
     var hostTurn = MutableLiveData(true)
     var hostBitmap = MutableLiveData<Bitmap>()
     var guestBitmap = MutableLiveData<Bitmap>()
+    var hostDefeated = MutableLiveData(false)
+    var guestDefeated = MutableLiveData(false)
 
     private var picassoTargetHost: Target? = null
     private var picassoTargetGuest: Target? = null
@@ -129,6 +142,14 @@ class GameViewModel @Inject constructor(
                     }
                 }
             }
+
+            override fun onDefeat() {
+                sessionRepository.updateSessionValue(
+                    sessionId.value!!,
+                    if (gameController!!.isHost) "hostDefeated" else "guestDefeated",
+                    true,
+                    {})
+            }
         })
     }
 
@@ -138,7 +159,8 @@ class GameViewModel @Inject constructor(
     // TODO: Auth service
     // Initialize new session if user is host (!!!onComplete callback executed only in GAME_STATE_LOADING!!!)
     fun initNewSession(userId: String, onComplete: () -> Unit) {
-        gameController = GameController(isHost = true)
+        gameController =
+            GameController(isHost = true)
         setListeners()
         sessionRepository.initNewSession(userId) {
             initLiveData(it, true) {
@@ -159,7 +181,8 @@ class GameViewModel @Inject constructor(
         onComplete: () -> Unit,
         onFailure: () -> Unit
     ) {
-        gameController = GameController(isHost = false)
+        gameController =
+            GameController(isHost = false)
         setListeners()
         sessionRepository.findSession(sessionId,
             { ref ->
@@ -250,6 +273,14 @@ class GameViewModel @Inject constructor(
                             responseTokens[2]
                         )
                     }
+
+                    if (session.hostDefeated && !hostDefeated.value!!) {
+                        hostDefeated.postValue(true)
+                    }
+
+                    if (session.guestDefeated && !guestDefeated.value!!) {
+                        hostDefeated.postValue(true)
+                    }
                 }
             }
 
@@ -332,7 +363,12 @@ class GameViewModel @Inject constructor(
     private fun leaveLobby() {
         if (gameController != null && sessionId.value != null) {
             if (gameController!!.isHost) {
-                sessionRepository.updateSessionValue(sessionId.value!!, "hostId", HOST_DISCONNECTED, null)
+                sessionRepository.updateSessionValue(
+                    sessionId.value!!,
+                    "hostId",
+                    HOST_DISCONNECTED,
+                    null
+                )
                 sessionRepository.detachValueEventListener(sessionId.value!!, valueListener!!)
 
                 if (guestId.value!! == GUEST_DISCONNECTED) {
@@ -340,7 +376,12 @@ class GameViewModel @Inject constructor(
                 }
 
             } else if (sessionId.value != null) {
-                sessionRepository.updateSessionValue(sessionId.value!!, "guestId", GUEST_DISCONNECTED, null)
+                sessionRepository.updateSessionValue(
+                    sessionId.value!!,
+                    "guestId",
+                    GUEST_DISCONNECTED,
+                    null
+                )
                 sessionRepository.detachValueEventListener(sessionId.value!!, valueListener!!)
                 sessionRepository.updateSessionValue(sessionId.value!!, "guestReady", false, null)
 

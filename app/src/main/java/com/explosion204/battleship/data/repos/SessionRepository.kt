@@ -40,14 +40,6 @@ class SessionRepository @Inject constructor(private val firebaseDatabase: Fireba
             })
     }
 
-    fun updateSessionValue(sessionId: Long, field: String, value: Any) {
-        dbSessions.child(sessionId.toString()).child(field).setValue(value)
-    }
-
-    fun deleteSession(sessionId: Long) {
-        dbSessions.child(sessionId.toString()).ref.removeValue()
-    }
-
     // find session by its id
     fun findSession(
         sessionId: Long,
@@ -67,6 +59,21 @@ class SessionRepository @Inject constructor(private val firebaseDatabase: Fireba
                 }
 
             })
+    }
+
+    fun updateSessionValue(sessionId: Long, field: String, value: Any, onComplete: (() -> Unit)?) {
+        dbSessions.child(sessionId.toString()).child(field).setValue(value)
+        if (onComplete != null) {
+            onComplete()
+        }
+    }
+
+    fun setValueOnDisconnect(ref: DatabaseReference, field: String, value: Any) {
+        ref.child(field).onDisconnect().setValue(value)
+    }
+
+    fun deleteSession(sessionId: Long) {
+        dbSessions.child(sessionId.toString()).ref.removeValue()
     }
 
     fun detachValueEventListener(sessionId: Long, listener: ValueEventListener) {

@@ -37,7 +37,6 @@ class GameViewModel @Inject constructor(
     private val userRepository: UserRepository
 ) : ViewModel() {
     private var gameController: GameController? = null
-    //private var connectionController: ConnectionController? = null
 
     var gameState = GAME_STATE_LOADING
     var sessionId = MutableLiveData<Long?>(null)
@@ -95,7 +94,8 @@ class GameViewModel @Inject constructor(
                     sessionRepository.updateSessionValue(
                         sessionId.value!!,
                         "fireResponse",
-                        "$i-$j-$response"
+                        "$i-$j-$response",
+                        null
                     )
                 }
             }
@@ -111,17 +111,20 @@ class GameViewModel @Inject constructor(
                         sessionRepository.updateSessionValue(
                             sessionId.value!!,
                             "fireRequest",
-                            FIRE_REQUEST_PASS
+                            FIRE_REQUEST_PASS,
+                            null
                         )
                         sessionRepository.updateSessionValue(
                             sessionId.value!!,
                             "fireResponse",
-                            FIRE_RESPONSE_PASS
+                            FIRE_RESPONSE_PASS,
+                            null
                         )
                         sessionRepository.updateSessionValue(
                             sessionId.value!!,
                             "hostTurn",
-                            !hostTurn
+                            !hostTurn,
+                            null
                         )
                     }
                 }
@@ -132,6 +135,7 @@ class GameViewModel @Inject constructor(
     // TODO: Delete session after the game finished]
     // TODO: Second guest cannot connect to lobby (implemented, not tested)
     // TODO: Cannot connect to lobby with the same uid as host (implemented, not tested)
+    // TODO: Auth service
     // Initialize new session if user is host (!!!onComplete callback executed only in GAME_STATE_LOADING!!!)
     fun initNewSession(userId: String, onComplete: () -> Unit) {
         gameController = GameController(isHost = true)
@@ -159,7 +163,7 @@ class GameViewModel @Inject constructor(
         setListeners()
         sessionRepository.findSession(sessionId,
             { ref ->
-                ref.child("guestId").setValue(userId).addOnSuccessListener {
+                sessionRepository.updateSessionValue(sessionId, "guestId", userId) {
                     initLiveData(ref, false) {
                         if (guestProfileImageLoaded && hostProfileImageLoaded) {
                             onComplete()
@@ -251,11 +255,10 @@ class GameViewModel @Inject constructor(
 
         })
 
-        // prevent session from clean up after guest leaved lobby
-        if (gameController!!.isHost) {
-            ref.child("hostId").onDisconnect().setValue(HOST_DISCONNECTED)
+        if (isHost) {
+            sessionRepository.setValueOnDisconnect(ref, "hostId", HOST_DISCONNECTED)
         } else {
-            ref.child("guestId").onDisconnect().setValue(GUEST_DISCONNECTED)
+            sessionRepository.setValueOnDisconnect(ref, "guestId", GUEST_DISCONNECTED)
         }
     }
 
@@ -307,7 +310,8 @@ class GameViewModel @Inject constructor(
                 sessionRepository.updateSessionValue(
                     sessionId.value!!,
                     if (gameController!!.isHost) "hostReady" else "guestReady",
-                    if (gameController!!.isHost) !hostReady.value!! else !guestReady.value!!
+                    if (gameController!!.isHost) !hostReady.value!! else !guestReady.value!!,
+                    null
                 )
             }
         }
@@ -315,34 +319,30 @@ class GameViewModel @Inject constructor(
 
     fun setGameRunning(status: Boolean) {
         if (sessionId.value != null) {
-            sessionRepository.updateSessionValue(sessionId.value!!, "gameRunning", status)
+            sessionRepository.updateSessionValue(sessionId.value!!, "gameRunning", status, null)
         }
     }
 
     fun postFireRequest(i: Int, j: Int) {
         if (sessionId.value != null) {
-            sessionRepository.updateSessionValue(sessionId.value!!, "fireRequest", "$i-$j")
+            sessionRepository.updateSessionValue(sessionId.value!!, "fireRequest", "$i-$j", null)
         }
     }
 
     private fun leaveLobby() {
-        if (gameController != null) {
+        if (gameController != null && sessionId.value != null) {
             if (gameController!!.isHost) {
-                sessionRepository.updateSessionValue(sessionId.value!!, "hostId", HOST_DISCONNECTED)
+                sessionRepository.updateSessionValue(sessionId.value!!, "hostId", HOST_DISCONNECTED, null)
                 sessionRepository.detachValueEventListener(sessionId.value!!, valueListener!!)
 
                 if (guestId.value!! == GUEST_DISCONNECTED) {
                     sessionRepository.deleteSession(sessionId.value!!)
                 }
 
-            } else {
-                sessionRepository.updateSessionValue(
-                    sessionId.value!!,
-                    "guestId",
-                    GUEST_DISCONNECTED
-                )
+            } else if (sessionId.value != null) {
+                sessionRepository.updateSessionValue(sessionId.value!!, "guestId", GUEST_DISCONNECTED, null)
                 sessionRepository.detachValueEventListener(sessionId.value!!, valueListener!!)
-                sessionRepository.updateSessionValue(sessionId.value!!, "guestReady", false)
+                sessionRepository.updateSessionValue(sessionId.value!!, "guestReady", false, null)
 
                 if (hostId.value!! == HOST_DISCONNECTED) {
                     sessionRepository.deleteSession(sessionId.value!!)

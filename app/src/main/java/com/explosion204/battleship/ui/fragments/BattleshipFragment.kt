@@ -1,6 +1,10 @@
 package com.explosion204.battleship.ui.fragments
 
+import android.content.Context
+import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -194,9 +198,23 @@ class BattleshipFragment : DaggerFragment() {
                 if (it) {
                     playerStatus.text = getString(R.string.firing)
                     opponentStatus.text = ""
-                    opponentMatrixAdapter.setOnItemClickListener(object : MatrixAdapter.OnItemClickListener {
+                    opponentMatrixAdapter.setOnItemClickListener(object :
+                        MatrixAdapter.OnItemClickListener {
                         override fun onItemClick(i: Int, j: Int) {
                             gameViewModel.postFireRequest(i, j)
+                            val v =
+                                requireContext().getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                v.vibrate(
+                                    VibrationEffect.createOneShot(
+                                        500,
+                                        VibrationEffect.DEFAULT_AMPLITUDE
+                                    )
+                                )
+                            } else {
+                                v.vibrate(500)
+                            }
                         }
                     })
                 } else {
@@ -212,7 +230,8 @@ class BattleshipFragment : DaggerFragment() {
                 } else {
                     playerStatus.text = getString(R.string.firing)
                     opponentStatus.text = ""
-                    opponentMatrixAdapter.setOnItemClickListener(object : MatrixAdapter.OnItemClickListener {
+                    opponentMatrixAdapter.setOnItemClickListener(object :
+                        MatrixAdapter.OnItemClickListener {
                         override fun onItemClick(i: Int, j: Int) {
                             gameViewModel.postFireRequest(i, j)
                         }

@@ -1,16 +1,8 @@
 package com.explosion204.battleship.data.repos
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import com.explosion204.battleship.Constants.Companion.FIRE_REQUEST_PASS
-import com.explosion204.battleship.Constants.Companion.FIRE_RESPONSE_PASS
 import com.explosion204.battleship.Constants.Companion.SESSIONS_DB
 import com.explosion204.battleship.data.models.Session
 import com.google.firebase.database.*
-import com.google.firebase.firestore.DocumentReference
-import kotlinx.coroutines.android.awaitFrame
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class SessionRepository @Inject constructor(private val firebaseDatabase: FirebaseDatabase) {
@@ -63,6 +55,7 @@ class SessionRepository @Inject constructor(private val firebaseDatabase: Fireba
 
     fun updateSessionValue(sessionId: Long, field: String, value: Any, onComplete: (() -> Unit)?) {
         dbSessions.child(sessionId.toString()).child(field).setValue(value)
+
         if (onComplete != null) {
             onComplete()
         }

@@ -10,7 +10,6 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import com.explosion204.battleship.Constants.Companion.IS_HOST_EXTRA
 import com.explosion204.battleship.Constants.Companion.SESSION_ID_EXTRA
 import com.explosion204.battleship.R
@@ -25,7 +24,7 @@ import javax.inject.Inject
 class JoinGameDialogFragment : DaggerDialogFragment() {
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
-    private val gameViewModel: GameViewModel by viewModels {
+    private val gameViewModel: GameViewModel by activityViewModels {
         viewModelFactory
     }
 

@@ -32,4 +32,6 @@
     <string name="won">WON</string>
     <string name="lost">LOST</string>
     <string name="history">History</string>
+    <string name="google_sign_in_error_1">Cannot sign in with Google.</string>
+    <string name="google_sign_in_error2">Cannot sign in with Google. Check your internet connection.</string>
 </resources>

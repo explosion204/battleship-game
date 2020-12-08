@@ -3,7 +3,6 @@ package com.explosion204.battleship.di.modules
 import com.explosion204.battleship.data.repos.GameResultRepository
 import com.explosion204.battleship.data.repos.SessionRepository
 import com.explosion204.battleship.data.repos.UserRepository
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage

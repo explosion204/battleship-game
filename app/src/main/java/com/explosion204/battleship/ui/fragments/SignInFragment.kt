@@ -1,7 +1,6 @@
 package com.explosion204.battleship.ui.fragments
 
 import android.content.Intent
-import android.opengl.Visibility
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,13 +8,11 @@ import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.cardview.widget.CardView
-import androidx.core.view.isVisible
 import androidx.navigation.Navigation
 import com.explosion204.battleship.Constants.Companion.GOOGLE_SIGN_IN
 import com.explosion204.battleship.R
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
@@ -76,7 +73,7 @@ class SignInFragment : DaggerFragment() {
                 loadingView.visibility = View.GONE
                 Toast.makeText(
                     requireContext(),
-                    "Cannot sign in with Google. Check your internet connection.",
+                    getString(R.string.google_sign_in_error2),
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -98,7 +95,7 @@ class SignInFragment : DaggerFragment() {
                     loadingView.visibility = View.GONE
                     Toast.makeText(
                         requireContext(),
-                        "Cannot sign in with Google.",
+                        getString(R.string.google_sign_in_error_1),
                         Toast.LENGTH_LONG
                     ).show()
                 }

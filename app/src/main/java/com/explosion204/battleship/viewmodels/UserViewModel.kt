@@ -4,13 +4,10 @@ import android.graphics.Bitmap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.explosion204.battleship.data.models.GameResult
 import com.explosion204.battleship.data.models.User
 import com.explosion204.battleship.data.repos.GameResultRepository
 import com.explosion204.battleship.data.repos.UserRepository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class UserViewModel @Inject constructor(

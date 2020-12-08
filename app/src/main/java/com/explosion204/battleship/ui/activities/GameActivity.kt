@@ -6,10 +6,8 @@ import android.net.Network
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
-import androidx.lifecycle.Observer
 import com.explosion204.battleship.Constants.Companion.GAME_STATE_IN_LOBBY
 import com.explosion204.battleship.Constants.Companion.GAME_STATE_IN_PROGRESS
-import com.explosion204.battleship.Constants.Companion.GAME_STATE_PAUSED
 import com.explosion204.battleship.R
 import com.explosion204.battleship.viewmodels.GameViewModel
 import com.explosion204.battleship.viewmodels.ViewModelFactory

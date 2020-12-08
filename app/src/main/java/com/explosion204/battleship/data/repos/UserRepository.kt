@@ -6,9 +6,7 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
-import kotlinx.coroutines.tasks.await
 import java.io.ByteArrayOutputStream
-import java.lang.IndexOutOfBoundsException
 import javax.inject.Inject
 
 class UserRepository @Inject constructor(

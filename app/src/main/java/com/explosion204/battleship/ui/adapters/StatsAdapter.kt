@@ -10,7 +10,6 @@ import com.explosion204.battleship.Constants.Companion.OUTCOME_FIRST_PLAYER_WON
 import com.explosion204.battleship.Constants.Companion.OUTCOME_SECOND_PLAYER_WON
 import com.explosion204.battleship.R
 import com.explosion204.battleship.data.models.GameResult
-import kotlinx.android.synthetic.main.game_result_item.view.*
 
 class StatsAdapter(
     private val context: Context,

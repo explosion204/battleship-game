@@ -1,6 +1,5 @@
 package com.explosion204.battleship.di.modules
 
-import com.explosion204.battleship.di.modules.ViewModelModule
 import com.explosion204.battleship.ui.activities.GameActivity
 import com.explosion204.battleship.ui.activities.StartupActivity
 import dagger.Module
